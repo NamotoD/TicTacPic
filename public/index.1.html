@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Chat 2.0</title>
+  <link rel="stylesheet" type="text/css" href="components/bootstrap/dist/css/bootstrap.css">
+  <link rel="stylesheet" href="components/font-awesome/css/font-awesome.css">
+  <link rel="stylesheet" href="css/flags.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/squares.css">
+</head>
+<body>
+  <div class="main col-md-6 col-md-offset-3">
+    <div class="alert alert-danger" id="errors"></div>
+    <div id="login-screen">
+      <p class="lead">Chat application - using node.js and socket.io</p>
+      <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+        <form class="form-inline" id="nameForm">
+          <div class="form-group">
+            <input type="text" class="form-control input-lg" placeholder="Your name" id="name">
+          </div>
+          <input type="submit" name="join" id="join" value="Join" class="btn btn-primary btn-lg">
+        </form>
+      </div>
+    </div>
+    
+    <div class="container-fluid">
+      <div class="row" id="main-chat-screen">
+        <div class="col-md-8 sidenav hidden-xs">
+          <div id="game-area">
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.Please enter your name below and click 'Join' or hit the 'Enter' key.Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+            <p>Please enter your name below and click 'Join' or hit the 'Enter' key.</p>
+          </div>
+        </div>
+        <br>
+        <div class="col-md-4">
+          <ul id="rooms" class="list-group"></ul>
+          <ul id="people" class="list-group"></ul>
+          <div class="row">
+              <div id="conversation">
+                <ul id="msgs" class="list-unstyled"></ul>
+            </div>
+          </div>
+          <div class="row">
+              <form id="chatForm" class="form-inline">
+                <div class="form-group">
+                  <input type="text" class="form-control input-lg" placeholder="Your message" id="msg">
+                </div>
+                <input type="submit" name="send" id="send" value="Send" class="btn btn-success btn-lg">
+                <input type="button" name="start_button" id="start_button" value="Record" onclick="startButton(event)" class="btn btn-info btn-lg">
+                <div class="btn-group">
+                  <button type="button" class="btn btn-lg btn-info dropdown-toggle" data-toggle="dropdown" >
+                    Actions <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu" role="menu">
+                    <li><a href="#" name="createRoom" data-toggle="modal" data-target="#roomModal">Create room</a></li>
+                    <li><a href="#" id = "checkAnswer" name="checkAnswer" data-toggle="modal" data-target="#checkAnswerModal">Check answer</a></li>
+                    <li><a href="#" name="leave" id="leave">Leave current room</a></li>
+                    <!--<li><a href="#" name="disconnect" id="disconnect">Disconnect from chat</a></li>-->
+                  </ul>
+                </div>
+              </form>
+          </div>
+          <div class="row">
+              <ul class="list-unstyled" id="updates"></ul>
+          </div>  
+        </div>
+      </div>
+    </div>  
+    
+  </div>
+
+  <!-- Modal check answer -->
+  <div class="modal fade" id="checkAnswerModal" tabindex="-1" role="dialog" aria-labelledby="checkAnswerLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title" id="checkAnswerLabel">Check answer</h4>
+        </div>
+        <div class="modal-body">
+          Check your answer here if you are sure. If correct you gain 100 points. If incorrect you lose 50.
+          <form class="form-inline" id="checkAnswerForm"><input type="text" class="form-control input-lg"  placeholder="Your answer..." id="answerToCheck"></form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-lg btn-default" data-dismiss="modal">Close</button>
+          <button data-dismiss="modal" id="checkAnswerBtn" class="btn btn-success btn-lg">Check answer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal end -->
+  
+  <!-- Modal start -->
+  <div class="modal fade" id="roomModal" tabindex="-1" role="dialog" aria-labelledby="createRoomLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title" id="createRoomLabel">Create room</h4>
+        </div>
+        <div class="modal-body">
+          You can create a chat room here. Names have to be unique.
+          <form class="form-inline" id="createRoomForm"><input type="text" class="form-control input-lg"  placeholder="Room name" id="createRoomName"></form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-lg btn-default" data-dismiss="modal">Close</button>
+          <button data-dismiss="modal" id="createRoomBtn" class="btn btn-success btn-lg">Create room</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal end -->
+  
+      <!-- This is the 'Host' screen. It displays the word for each player to match -->
+  <script id="host-game-template" type="text/template">
+        <div id="wordArea">
+            <div id="hostWord">5</div>
+        </div>
+        <div id="playerScores">
+            <div id="player1Score" class="playerScore">
+                <span class="score">0</span><span class="playerName">Player 1</span>
+            </div>
+            <div id="player2Score" class="playerScore">
+                <span class="playerName">Player 2</span><span class="score">0</span>
+            </div>
+        </div>
+  </script>
+
+    
+        <!-- Beginning of my block of code!! -->
+  <script id="my-code-template" type="text/template">
+
+        <div class="titleWrapper">
+
+            <div id = "myTitle" class="title">
+                MYCODE
+            </div>
+
+            <div class="buttons">
+
+  <div id ="container"
+     ><button id = 0  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 1  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 2  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 3  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 4  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 5  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 6  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 7  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 8  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 9  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 10  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 11  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 12  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 13  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 14  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 15  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 16  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 17  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 18  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 19  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 20  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 21  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 22  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 23  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 24  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 25  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 26  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 27  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 28  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 29  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 30  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 31  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 32  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 33  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 34  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 35  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 36  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 37  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 38  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 39  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 40  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 41  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 42  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 43  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 44  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 45  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 46  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 47  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 48  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 49  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 50  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 51  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 52  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 53  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 54  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 55  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 56  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 57  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 58  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 59  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 60  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 61  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 62  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 63  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 64  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 65  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 66  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 67  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 68  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 69  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 70  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 71  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 72  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 73  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 74  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 75  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 76  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 77  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 78  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 79  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 80  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 81  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 82  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 83  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 84  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 85  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 86  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 87  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 88  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 89  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 90  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 91  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 92  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 93  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 94  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 95  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 96  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 97  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 98  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 99  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 100  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 101  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 102  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 103  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 104  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 105  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 106  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 107  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 108  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 109  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 110  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 111  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 112  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 113  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 114  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 115  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 116  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 117  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 118  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 119  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 120  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 121  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 122  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 123  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 124  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 125  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 126  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 127  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 128  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 129  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 130  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 131  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 132  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 133  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 134  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 135  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 136  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 137  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 138  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 139  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 140  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 141  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 142  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><button id = 143  class="square"
+              data-top-left=   "N" data-top-middle=   "N" data-top-right=   "N"
+              data-middle-left="N" data-middle-middle="N" data-middle-right="N"
+              data-bottom-left="N" data-bottom-middle="N" data-bottom-right="N"
+              data-owner=      "N"></button
+     ><div style="clear:both"></div
+  ></div> 
+                
+            </div>
+
+        </div>
+
+  </script>
+        <!-- End of my block of code!! -->
+
+
+  <script src="components/jquery/dist/jquery.js"></script>
+  <script src="components/bootstrap/dist/js/bootstrap.js"></script>
+  <script src="/socket.io/socket.io.js"></script>  
+  <script src="js/client.js"></script>
+</body>
+</html>

@@ -45,7 +45,7 @@ if (!('webkitSpeechRecognition' in window)) {
       return;
     }
     final_transcript = '';
-    recognition.lang = "en-GB"
+    recognition.lang = "en-GB";
     recognition.start();
     $("#start_button").prop("value", "Recording ... Click to stop.");
     $("#msg").val();
@@ -55,13 +55,6 @@ if (!('webkitSpeechRecognition' in window)) {
 /*
 Functions
 */
-function toggleNameForm() {
-   $("#login-screen").toggle();
-}
-
-function toggleChatWindow() {
-  $("#main-chat-screen").toggle();
-}
 
 // Pad n to specified size by prepending a zeros
 function zeroPad(num, size) {
@@ -81,8 +74,12 @@ function timeFormat(msTime) {
 
 $(document).ready(function() {
   //setup "global" variables first
-  var socket = io.connect("127.0.0.1:3000");
-  var myRoomID = null;
+  var socket = io.connect();
+  var myRoomID = active = null;
+  $("#checkAnswer").hide();
+  $("#leave").hide();
+  $("#start_game_button").hide();
+  
 
   $("form").submit(function(event) {
     event.preventDefault();
@@ -94,33 +91,13 @@ $(document).ready(function() {
       });
   });
 
-  $("#main-chat-screen").hide();
-  $("#errors").hide();
+  //$("#main-chat-screen").hide();
   $("#name").focus();
   $("#join").attr('disabled', 'disabled'); 
   
   if ($("#name").val() === "") {
     $("#join").attr('disabled', 'disabled');
   }
-
-  //enter screen
-  $("#nameForm").submit(function() {
-    var name = $("#name").val();
-    var device = "desktop";
-    if (navigator.userAgent.match(/Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile/i)) {
-      device = "mobile";
-    }
-    if (name === "" || name.length < 2) {
-      $("#errors").empty();
-      $("#errors").append("Please enter a name");
-      $("#errors").show();
-    } else {
-      socket.emit("joinserver", name, device);
-      toggleNameForm();
-      toggleChatWindow();
-      $("#msg").focus();
-    }
-  });
 
   $("#name").keypress(function(e){
     var name = $("#name").val();
@@ -132,6 +109,8 @@ $(document).ready(function() {
       $("#join").removeAttr('disabled');
     }
   });
+  $("#errors").hide();
+  $("#errorsUserName").hide();
 
   //main chat screen
   $("#chatForm").submit(function() {
@@ -173,7 +152,11 @@ $(document).ready(function() {
       $("#"+data.person+"").remove();
     }
   });
-
+  
+  
+	socket.on("toggleActive", function() {
+	  $("#board").toggleClass("not-active");
+	});
 
 /*
   $("#msg").keypress(function(){
@@ -196,39 +179,109 @@ $(document).ready(function() {
     }
     console.log(data);
   });
-*/
-
-  $("#showCreateRoom").click(function() {
-    $("#createRoomForm").toggle();
+*/ 
+  var boardSize = 0;
+  $('#roomModal').on('show.bs.modal', function (e) {
+    boardSize = parseInt(e.relatedTarget.dataset.size);
   });
 
   $("#createRoomBtn").click(function() {
-    var roomExists = false;
-    var roomName = $("#createRoomName").val();
-    socket.emit("check", roomName, function(data) {
-      roomExists = data.result;
-       if (roomExists) {
-          $("#errors").empty();
-          $("#errors").show();
-          $("#errors").append("Room <i>" + roomName + "</i> already exists");
-        } else {      
-        if (roomName.length > 0) { //also check for roomname
-          socket.emit("createRoom", roomName);
-          $("#errors").empty();
-          $("#errors").hide();
-          }
+    var userName = $("#createNickName").val(),
+        roomName = $("#createRoomName").val(),
+        device = "desktop",
+        roomExists = userExists = false;
+    if (navigator.userAgent.match(/Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile/i)) {
+      device = "mobile";
+    }
+    socket.emit("checkNames", roomName, userName, function(data) {
+          roomExists = data.roomExists,
+          userExists = data.userExists;
+       if (!roomExists & !userExists & roomName.length > 0 & userName.length > 2) {
+          socket.emit("joinserver", userName, device);
+          socket.emit("createRoom", roomName, boardSize);
+          $("#roomModal").modal('hide');
+          $("#msg").focus();
+        }else{
+            $("#errors").empty();
+            $("#errors").show();
+            if (roomExists) {
+              $("#errors").append("Room <i>" + roomName + "</i> already exists");
+            }
+            if (userExists) {
+              $("#errors").append("User <i>" + userName + "</i> already exists!! Try " +data.proposedName);
+            }
+            if (roomName.length < 1) {
+              $("#errors").append("Enter room name");
+            }
+            if (userName.length < 3) {
+              $("#errors").append("Your name must be at least 3 characters");
+            }
         }
     });
   });
+  
+  var userModalID = 0;
+  $('#userModal').on('show.bs.modal', function (e) {
+    userModalID = e.relatedTarget.id;
+  });
+  
+  $("#joinRoomBtn").click(function() {
+    var userName = $("#createNick").val(),
+        device = "desktop",
+        userExists = false;
+    if (navigator.userAgent.match(/Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile/i)) {
+      device = "mobile";
+    }
+    socket.emit("checkNames", null, userName, function(data) {
+      userExists = data.userExists;
+       if (!userExists & userName.length > 2) {
+          socket.emit("joinserver", userName, device);
+          socket.emit("joinRoom", userModalID);
+          $("#userModal").modal('hide');
+          $("#msg").focus();
+        }else{
+            $("#errorsUserName").empty();
+            $("#errorsUserName").show();
+            if (userExists) {
+              $("#errorsUserName").append("User <i>" + userName + "</i> already exists!! Try " +data.proposedName);
+            }
+            if (userName.length < 3) {
+              $("#errorsUserName").append("Your name must be at least 3 characters");
+            }
+        }
+    });
+  });
+  
+  $("#checkAnswerBtn").click(function() {
+    var correctAnswer = false;
+    var answer = $("#answerToCheck").val();
+    socket.emit("checkAnswer", answer, function(data) {
+      correctAnswer = data.result;
+      data.score = 0;
+      data.decreaseAttempts = true;
 
-  $("#rooms").on('click', '.joinRoomBtn', function() {
-    var roomName = $(this).siblings("span").text();
-    var roomID = $(this).attr("id");
-    socket.emit("joinRoom", roomID);
+       if (correctAnswer) {
+          data.score += 100;
+          data.decreaseAttempts = false;
+          $("#errors").empty();
+          $("#errors").hide();
+          
+        } else {data.score -= 50;
+          $("#errors").empty();
+          $("#errors").show();
+          $("#errors").append("<i>" + answer + "</i> is a wrong answer. You re losing 50 points." +data.attempts+ "attempts left!"); 
+
+        }
+        socket.emit("adjustScore", data);
+    });
+  });
+  
+  $("#start_game_button").click(function() {
+    socket.emit("startGame");
   });
 
   $("#rooms").on('click', '.removeRoomBtn', function() {
-    var roomName = $(this).siblings("span").text();
+    alert("remove button works!");
     var roomID = $(this).attr("id");
     socket.emit("removeRoom", roomID);
     $("#createRoom").show();
@@ -237,6 +290,7 @@ $(document).ready(function() {
   $("#leave").click(function() {
     var roomID = myRoomID;
     socket.emit("leaveRoom", roomID);
+    $("#leave").hide();
     $("#createRoom").show();
   });
 
@@ -245,6 +299,47 @@ $(document).ready(function() {
     $("#msg").val("w:"+name+":");
     $("#msg").focus();
   });
+  
+  $(document).on('click', '.col', function() {
+    // the tapped button id
+    var clickedButtonId = parseInt(this.id);
+    if($("#" + clickedButtonId).parent('div').hasClass("Default")) {
+      var data = {
+        clickedButtonId: clickedButtonId,
+        myRoomID: myRoomID
+      };
+      socket.emit('sendClickedButton', data);
+      $("#board").addClass("not-active");
+            $("#errors").empty();
+            $("#errors").hide();
+    } else {
+      alert("Choose another button!");
+    }
+  });
+  
+  socket.on("sendScoresToClients", function(data) {
+    $(".player-score:eq( 0 )").find('.badge').text( data.myCreatorScore );
+    $(".player-score:eq( 1 )").find('.badge').text( data.myJoinerScore );
+    $("#" + data.clickedButtonId).parent('div').removeClass("Default").addClass(data.myPlayerTile);
+  });
+  
+  socket.on("setTransparent", function(data) {
+    $.each(data.winningSets, function (i, set) {
+      $.each(set, function (j, field) {
+        $("#" + this).parent('div').addClass('transparent');
+      });
+    });
+  });  
+  
+  socket.on("setUncovered", function(data) {
+    $.each(data.winningSets, function (i, set) {
+      $.each(set, function (j, field) {
+        $("#" + this).parent('div').addClass('uncovered');
+      });
+    });
+  });
+            
+
 /*
   $("#whisper").change(function() {
     var peopleOnline = [];
@@ -295,59 +390,88 @@ $(document).ready(function() {
 */
 
 //socket-y stuff
-socket.on("exists", function(data) {
-  $("#errors").empty();
-  $("#errors").show();
-  $("#errors").append(data.msg + " Try <strong>" + data.proposedName + "</strong>");
-    toggleNameForm();
-    toggleChatWindow();
-});
-
-socket.on("joined", function() {
-  $("#errors").hide();
-  if (navigator.geolocation) { //get lat lon of user
-    navigator.geolocation.getCurrentPosition(positionSuccess, positionError, { enableHighAccuracy: true });
-  } else {
+  socket.on("exists", function(data) {
+    $("#errors").empty();
     $("#errors").show();
-    $("#errors").append("Your browser is ancient and it doesn't support GeoLocation.");
-  }
-  function positionError(e) {
-    console.log(e);
-  }
+    $("#errors").append(data.msg + " Try <strong>" + data.proposedName + "</strong>");
+  });
 
-  function positionSuccess(position) {
-    var lat = position.coords.latitude;
-    var lon = position.coords.longitude;
-    //consult the yahoo service
-    $.ajax({
-      type: "GET",
-      url: "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20geo.placefinder%20where%20text%3D%22"+lat+"%2C"+lon+"%22%20and%20gflags%3D%22R%22&format=json",
-      dataType: "json",
-       success: function(data) {
-        socket.emit("countryUpdate", {country: data.query.results.Result.countrycode});
-      }
-    });
-  }
-});
+  socket.on("joined", function() {
+    $("#errors").hide();
+    if (navigator.geolocation) { //get lat lon of user
+      navigator.geolocation.getCurrentPosition(positionSuccess, positionError, { enableHighAccuracy: true });
+    } else {
+      $("#errors").show();
+      $("#errors").append("Your browser is ancient and it doesn't support GeoLocation.");
+    }
+    function positionError(e) {
+      console.log(e);
+    }
+  
+    function positionSuccess(position) {
+      var lat = position.coords.latitude;
+      var lon = position.coords.longitude;
+      //consult the yahoo service
+      $.ajax({
+        type: "GET",
+        url: "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20geo.placefinder%20where%20text%3D%22"+lat+"%2C"+lon+"%22%20and%20gflags%3D%22R%22&format=json",
+        dataType: "json",
+         success: function(data) {
+          socket.emit("countryUpdate", {country: data.query.results.Result.countrycode});
+        }
+      });
+    }
+  });
 
-socket.on("history", function(data) {
-  if (data.length !== 0) {
-    $("#msgs").append("<li><strong><span class='text-warning'>Last 10 messages:</li>");
-    $.each(data, function(data, msg) {
-      $("#msgs").append("<li><span class='text-warning'>" + msg + "</span></li>");
-    });
-  } else {
-    $("#msgs").append("<li><strong><span class='text-warning'>No past messages in this room.</li>");
-  }
-});
+  socket.on("history", function(data) {
+    if (data.length !== 0) {
+      $("#msgs").append("<li><strong><span class='text-warning'>Last 10 messages:</li>");
+      $.each(data, function(data, msg) {
+        $("#msgs").append("<li><span class='text-warning'>" + msg + "</span></li>");
+      });
+    } else {
+      $("#msgs").append("<li><strong><span class='text-warning'>No past messages in this room.</li>");
+    }
+  });
 
   socket.on("update", function(msg) {
     $("#msgs").append("<li>" + msg + "</li>");
   });
-
+  
+  socket.on("showBoard", function(data) {
+    $("#msgs").empty();
+    $("#start_game_button").hide();
+    var boardTemplate = document.getElementById('gameBoard'),
+        gameArea = document.getElementById('game-area'),
+        groups = document.getElementById('groups'),
+        boardClone = boardTemplate.content.cloneNode(true);
+        //clear game-area
+    while (gameArea.firstChild) {
+      gameArea.removeChild(gameArea.firstChild);
+    }
+    gameArea.appendChild(boardClone);
+    $(".player-score:eq( 0 )").find('.glyphicon').append( data.creatorName );
+    $(".player-score:eq( 1 )").find('.glyphicon').append( data.joinerName );
+    if(active)  $("#board").removeClass("not-active").addClass("active");
+    $("#board").css('background-position', data.randPic+ '% 0');
+    
+      while (groups.firstChild) {
+      groups.removeChild(groups.firstChild);
+    }
+  });
+  
+  socket.on("enableCheckAnswerButton", function() {
+    $("#checkAnswer").show();
+  });
+  
+  socket.on("disableCheckAnswerButton", function() {
+    $("#checkAnswer").hide();
+  });
+  
   socket.on("update-people", function(data){
     //var peopleOnline = [];
     $("#people").empty();
+    $("#listOfPeople").empty();
     $('#people').append("<li class=\"list-group-item active\">People online <span class=\"badge\">"+data.count+"</span></li>");
     $.each(data.people, function(a, obj) {
       if (!("country" in obj)) {
@@ -355,9 +479,9 @@ socket.on("history", function(data) {
       } else {
         html = "<img class=\"flag flag-"+obj.country+"\"/>";
       }
-      $('#people').append("<li class=\"list-group-item\"><span>" + obj.name + "</span> <i class=\"fa fa-"+obj.device+"\"></i> " + html + " <a href=\"#\" class=\"whisper btn btn-xs\">whisper</a></li>");
+      $('#listOfPeople').append("<li class=\"list-group-item\"><span>" + obj.name + "</span> <i class=\"fa fa-"+obj.device+"\"></i> " + html + " <a href=\"#\" class=\"whisper btn btn-xs\">whisper</a></li>");
       //peopleOnline.push(obj.name);
-    });
+  });
 
     /*var whisper = $("#whisper").prop('checked');
     if (whisper) {
@@ -372,6 +496,14 @@ socket.on("history", function(data) {
 
   socket.on("chat", function(msTime, person, msg) {
     $("#msgs").append("<li><strong><span class='text-success'>" + timeFormat(msTime) + person.name + "</span></strong>: " + msg + "</li>");
+    //scroll messages
+    var height = 0;
+    $('#msgs li').each(function(i, value){
+      height += parseInt($(this).height());
+    });
+    height += '';
+    $('#msgs').animate({scrollTop: height});
+    
     //clear typing field
      $("#"+person.name+"").remove();
      clearTimeout(timeout);
@@ -389,19 +521,47 @@ socket.on("history", function(data) {
 
   socket.on("roomList", function(data) {
     $("#rooms").text("");
+    $("#listOfRooms").text("");
     $("#rooms").append("<li class=\"list-group-item active\">List of rooms <span class=\"badge\">"+data.count+"</span></li>");
-     if (!jQuery.isEmptyObject(data.rooms)) { 
+    if (!jQuery.isEmptyObject(data.rooms)) { 
       $.each(data.rooms, function(id, room) {
-        var html = "<button id="+id+" class='joinRoomBtn btn btn-default btn-xs' >Join</button>" + " " + "<button id="+id+" class='removeRoomBtn btn btn-default btn-xs'>Remove</button>";
-        $('#rooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span> " + html + "</li>");
+        if (room.s === data.s) {
+          var html = "<button id="+id+" data-roomName="+room.name+" class='btn btn-default btn-xs' data-toggle='modal' data-target='#userModal' >Join</button>" + " " + "<button id="+id+" class='removeRoomBtn btn btn-default btn-xs'>Remove</button>";
+          $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.s + "</span> " + html + "</li>");
+        }
       });
     } else {
-      $("#rooms").append("<li class=\"list-group-item\">There are no rooms yet.</li>");
+      $("#listOfRooms").append("<li class=\"list-group-item\">There are no rooms yet.</li>");
     }
   });
 
   socket.on("sendRoomID", function(data) {
     myRoomID = data.id;
+    active = data.active;
+  });
+  
+  socket.on("showStartButton", function(data) {
+    $("#start_game_button").show();
+  });
+  
+  socket.on("hideCreateRoomButton", function(data) {
+    $("#createRoom").hide();
+  });
+  
+  socket.on("showLeaveButton", function(data) {
+    $("#leave").show();
+  }); 
+      
+  socket.on("disableBoard", function(data) {
+    $("#board").addClass("not-active"); 
+  });
+
+  socket.on("endGame", function(data, msg){
+    $("#msgs").append("<li><strong><span class='text-warning'>" + msg + "</span></strong></li>");
+    $("#msg").attr("disabled", "disabled");
+    $("#send").attr("disabled", "disabled");
+    $("#checkAnswer").hide();
+    $("#board").addClass("not-active");
   });
 
   socket.on("disconnect", function(){

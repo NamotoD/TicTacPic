@@ -1,0 +1,83 @@
+body 		{
+				background-color: green;
+			}
+			
+/*.container 	{
+				width: 600px;
+				height: 600px;
+				font-family: Arial, Verdana, sans-serif;
+     			overflow: hidden;
+     			  background-image: url('../images/background/animalsSprite.jpg');
+  background-repeat: no-repeat;
+			}*/
+.container{
+
+  margin: 0 auto;
+  padding-left: 0;
+  padding-right: 0;
+  width: 50%;
+background-image: url("../images/background/animalsSpriteNew.jpg");
+background-size: 3700%;
+display:block;
+}
+			
+.container .square {
+				width: 8.33334%;
+                                height: 0;
+                                padding-bottom: 8.33334%;
+				float: left;
+				margin: 0px;
+				background-image:url('../images/myTile2.jpg');
+                                background-size: 100%;
+			}
+                        
+.col{
+    margin-bottom: -99999px;
+    padding-bottom: 99999px;
+    background-color:#ffc;
+    opacity: 0.1;
+}
+
+.col-wrap{  
+    overflow: hidden;   
+}
+.container .Default {
+   				background-position: 0 0;
+			}
+
+.container .O {
+   				background-position: 0 50%;
+			}
+			
+.container .Z{
+   				background-position: 0 100%;
+			}
+			
+.container .transparent{
+		    	opacity: 0.1;
+			}
+
+.clear 		{
+				clear: left;
+			}
+
+.active {
+			   pointer-events: auto;
+			   cursor: pointer;
+			}
+			
+.not-active {
+			   pointer-events: none;
+			   cursor: not-allowed;
+			}
+                        
+.row.no-gutter {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.row.no-gutter [class*='col-']:not(:first-child),
+.row.no-gutter [class*='col-']:not(:last-child) {
+  padding-right: 0;
+  padding-left: 0;
+}
