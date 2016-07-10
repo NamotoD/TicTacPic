@@ -1,0 +1,51 @@
+<div id = "chatWrap" class="well">
+    <div id="groups">
+        <div class="row">
+            <ul id="rooms" class="list-group" data-toggle="collapse" data-target="#listOfRooms"></ul>
+            <div id="listOfRooms" class="collapse in"></div>
+        </div>
+        <div class="row">
+            <ul id="people" class="list-group" data-toggle="collapse" data-target="#listOfPeople"></ul>
+            <div id="listOfPeople" class="collapse"></div>
+        </div>
+    </div>    
+    <div class="row">
+        <div id="conversation">
+            <ul id="msgs" class="list-unstyled"></ul>
+        </div>
+    </div>
+    <div class="row">
+        <form id="chatForm" class="form-inline">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="row">
+                    <div id = "formChat" class="form-group">
+                        <input type="text" class="form-control input" placeholder="Your message" id="msg">
+                    </div>
+                    <input type="submit" name="send" id="send" value="Send" class="btn btn-success">
+                    <input type="button" name="start_button" id="start_button" value="Record" onclick="startButton(event);" class="btn btn-info">
+                    <a href="#" id="start_game_button" class="btn btn-info" role="button">Start</a>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown">Actions 
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" role="menu">
+                            <li>
+                                <a href="#" id="createRoom" name="createRoom" data-toggle="modal" data-size = "<%=(rows)%>" data-target="#roomModal">Create room</a>
+                            </li>
+                            <li>
+                                <a href="#" id="checkAnswer" name="checkAnswer" data-toggle="modal" data-target="#checkAnswerModal">Check answer</a>
+                            </li>
+                            <li>
+                                <a href="/" id="leave" name="leave">Leave current room</a>
+                            </li>
+                            <!--<li><a href="#" name="disconnect" id="disconnect">Disconnect from chat</a></li>-->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="row">
+        <ul class="list-unstyled" id="updates"></ul>
+    </div>                         
+</div> 

@@ -1,0 +1,70 @@
+<!-- Modal check answer -->
+<div class="modal fade" id="checkAnswerModal" tabindex="-1" role="dialog" aria-labelledby="checkAnswerLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title" id="checkAnswerLabel">Check answer</h4>
+        </div>
+        <div class="modal-body">
+          Check your answer here if you are sure. If correct you gain 100 points. If incorrect you lose 50.
+          <form class="form-inline" id="checkAnswerForm"><input type="text" class="form-control input-lg"  placeholder="Your answer..." id="answerToCheck"></form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-lg btn-default" data-dismiss="modal">Close</button>
+          <button data-dismiss="modal" id="checkAnswerBtn" class="btn btn-success btn-lg">Check answer</button>
+        </div>
+      </div>
+    </div>
+</div>
+<!-- Modal end -->
+  
+<!-- Modal start -->
+<div class="modal modal-fullscreen fade" id="roomModal" tabindex="-1" role="dialog" aria-labelledby="createRoomLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title" id="createRoomLabel">Create room</h4>
+        </div>
+        <div class="modal-body">
+          You can create a chat room here. Names have to be unique.
+          <form class="form-inline" id="createRoomForm">
+            <div class="alert alert-danger" id="errors"></div>
+              <input type="text" class="form-control input-lg"  placeholder="Your nick" id="createNickName">
+              <input type="text" class="form-control input-lg"  placeholder="Room name" id="createRoomName">
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-lg btn-default" data-dismiss="modal">Close</button>
+          <button  id="createRoomBtn" class="btn btn-success btn-lg">Create room</button>
+        </div>
+      </div>
+    </div>
+</div>
+<!-- Modal end -->
+  
+<!-- Modal start -->
+<div class="modal fade" id="userModal" tabindex="-1" role="dialog" aria-labelledby="createRoomLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title" id="createRoomLabel">Choose name</h4>
+        </div>
+        <div class="modal-body">
+          Write your name down. It must be at least 3 characters long.
+          <form class="form-inline" id="createRoomForm">
+            <div class="alert alert-danger" id="errorsUserName"></div>
+              <input type="text" class="form-control input-lg"  placeholder="Your nick" id="createNick">
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-lg btn-default" data-dismiss="modal">Close</button>
+          <button  id="joinRoomBtn" class="btn btn-success btn-lg">Join room</button>
+        </div>
+      </div>
+    </div>
+</div>
+<!-- Modal end -->

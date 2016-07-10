@@ -1,0 +1,11 @@
+<div id = "board" class="well <%=active%>">
+    <% for(var i=0; i<(rows); i++) {%>
+        <% include justBoard/rowBeg %>
+            <% for(var j=0; j<(rows); j++) {%>
+                <div class="col-xs-<%=12/(rows)%> col-sm-<%=12/(rows)%> col-md-<%=12/(rows)%> col-lg-<%=12/(rows)%> <%=(boardSize)%> Default col-wrap">
+                    <button type="button" id="<%=(i*(rows))+j%>" class="btn btn-default btn-block col"></button>
+                </div>
+            <% } %>
+        <% include justBoard/rowEnd %>
+    <% } %>
+</div>  

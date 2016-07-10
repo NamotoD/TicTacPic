@@ -1,40 +1,105 @@
 var express = require('express')
-, app = express()
-, server = require('http').createServer(app)
-, io = require("socket.io").listen(server)
 , npid = require("npid")
 , uuid = require('node-uuid')
 , Room = require('./room.js')
 , _ = require('underscore')._;
 
-app.configure(function() {
-	app.set('port', process.env.OPENSHIFT_NODEJS_PORT || 3000);
-  	app.set('ipaddr', process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1");
-	app.use(express.bodyParser());
-	app.use(express.methodOverride());
-	app.use(express.static(__dirname + '/public'));
-	app.use('/components', express.static(__dirname + '/components'));
-	app.use('/js', express.static(__dirname + '/js'));
-	app.use('/icons', express.static(__dirname + '/icons'));
-	app.set('views', __dirname + '/views');
-	app.engine('html', require('ejs').renderFile);
 
-	/* Store process-id (as priviledged user) */
-	try {
-	    npid.create('/var/run/advanced-chat.pid', true);
-	} catch (err) {
-	    console.log(err);
-	    //process.exit(1);
-	}
 
+var mongoose = require('mongoose');
+var passport = require('passport');
+var flash    = require('connect-flash');
+var morgan       = require('morgan');
+
+var methodOverride = require('method-override');
+var session = require('express-session');
+var bodyParser = require('body-parser');
+var cookieParser = require('cookie-parser');
+
+
+var app = express();
+var server = require('http').createServer(app);
+var io = require("socket.io").listen(server);
+var configDB = require('./config/database.js');
+
+app.set('socketio', io);
+
+app.set('port', process.env.OPENSHIFT_NODEJS_PORT || 8080);
+app.set('ipaddr', process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1");
+
+// configuration ===============================================================
+mongoose.connect(configDB.url); // connect to our database
+
+require('./config/passport')(passport); // pass passport for configuration
+
+// set up our express application
+app.use(morgan('dev')); // log every request to the console
+app.use(cookieParser()); // read cookies (needed for auth)
+app.use(bodyParser()); // get information from html forms
+
+app.set('view engine', 'ejs'); // set up ejs for templating
+
+// required for passport
+app.use(session({ secret: 'ilovescotchscotchyscotchscotch' })); // session secret
+app.use(passport.initialize());
+app.use(passport.session()); // persistent login sessions
+app.use(flash()); // use connect-flash for flash messages stored in session
+app.use(methodOverride());
+
+app.use(express.static(__dirname + '/public'));
+app.use('/components', express.static(__dirname + '/components'));
+app.use('/js', express.static(__dirname + '/js'));
+app.use('/icons', express.static(__dirname + '/icons'));
+
+// routes ======================================================================
+require('./app/routes.js')(app, passport); // load our routes and pass in our app and fully configured passport
+
+// launch ======================================================================
+
+/* Store process-id (as priviledged user) */
+try {
+    npid.create('/var/run/advanced-chat.pid', true);
+} catch (err) {
+    console.log(err);
+    //process.exit(1);
+}
+
+server.listen(app.get('port'),function(){
+  console.log('Express server listening on port ' + app.get('port'));
 });
 
 app.get('/', function(req, res) {
-  res.render('index.html');
+  	res.render('pages/index', {
+	  	mainScreen:"../partials/welcomeScreen",
+	  	active:"not-active",
+	  	rows:12,
+	  	boardSize: "large"
+  	});
 });
 
-server.listen(app.get('port'), app.get('ipaddr'), function(){
-	console.log('Express server listening on  IP: ' + app.get('ipaddr') + ' and port ' + app.get('port'));
+app.get('/:size', function(req, res) {
+	var size  = parseInt(req.params.size),
+		board ="";
+		
+    var io = req.app.get('socketio');
+	var sizePeople = _.size(people);
+	var sizeRooms = _.size(rooms);
+	io.sockets.emit("update-people", {people: people, count: sizePeople});
+	io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: size});
+	if ( size === 4){
+		board = "small";
+	} else if (size === 6){
+		board = "medium";
+	} else {
+		board = "large";
+	}
+	
+  	res.render('pages/index', {
+	  	mainScreen:"../partials/gameScreen",
+	  	active:"not-active",
+	  	rows:12,
+	  	boardSize: board
+  	});
 });
 
 io.set("log level", 1);
@@ -125,6 +190,7 @@ function purge(s, action) {
 				io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms});
 			} else if (action === "leaveRoom") { //room owner leaves room
 				io.sockets.in(s.room).emit("update", "The owner (" +people[s.id].name + ") has left the room. The room is removed and you have been disconnected from it as well.");
+				io.sockets.in(s.room).emit("somePlayerLeftRoom");
 				var socketids = [];
 				for (var i=0; i<sockets.length; i++) {
 					socketids.push(sockets[i].id);
@@ -166,6 +232,7 @@ function purge(s, action) {
 					room.people.splice(personIndex, 1);
 					people[s.id].inroom = null;
 					io.sockets.emit("update", people[s.id].name + " has left the room.");
+					io.sockets.in(s.room).emit("disableBoard");
 					s.leave(room.name);
 				}
 			}
@@ -184,36 +251,23 @@ function purge(s, action) {
 }
 
 io.sockets.on("connection", function (socket) {
+		console.log(socket.id);
+	sizePeople = _.size(people);
+	sizeRooms = _.size(rooms);
+	io.sockets.emit("update-people", {people: people, count: sizePeople});
+	socket.emit("roomList", {rooms: rooms, count: sizeRooms});
 
 	socket.on("joinserver", function(name, device) {
-		var exists = false;
-		var ownerRoomID = inRoomID = null;
-
-		_.find(people, function(key,value) {
-			if (key.name.toLowerCase() === name.toLowerCase())
-				return exists = true;
-		});
-		if (exists) {//provide unique username:
-			var randomNumber=Math.floor(Math.random()*1001)
-			do {
-				proposedName = name+randomNumber;
-				_.find(people, function(key,value) {
-					if (key.name.toLowerCase() === proposedName.toLowerCase())
-						return exists = true;
-				});
-			} while (!exists);
-			socket.emit("exists", {msg: "The username already exists, please pick another one.", proposedName: proposedName});
-		} else {
-			people[socket.id] = {"name" : name, "owns" : ownerRoomID, "inroom": inRoomID, "device": device};
+		var ownerRoomID = inRoomID = myPlayerTile = null;
+			people[socket.id] = {"name" : name, "owns" : ownerRoomID, "inroom": inRoomID, "device": device, "tile": myPlayerTile};
 			socket.emit("update", "You have connected to the server.");
-			io.sockets.emit("update", people[socket.id].name + " is online.")
+			io.sockets.emit("update", people[socket.id].name + " is online.");
 			sizePeople = _.size(people);
 			sizeRooms = _.size(rooms);
 			io.sockets.emit("update-people", {people: people, count: sizePeople});
 			socket.emit("roomList", {rooms: rooms, count: sizeRooms});
 			socket.emit("joined"); //extra emit for GeoLocation
 			sockets.push(socket);
-		}
 	});
 
 	socket.on("getOnlinePeople", function(fn) {
@@ -253,7 +307,7 @@ io.sockets.on("connection", function (socket) {
 				}
 			}
 			if (found && socket.id !== whisperId) {
-				var whisperTo = whisperStr[1];
+				whisperTo = whisperStr[1];
 				var whisperMsg = whisperStr[2];
 				socket.emit("whisper", {name: "You"}, whisperMsg);
 				io.sockets.socket(whisperId).emit("whisper", msTime, people[socket.id], whisperMsg);
@@ -282,44 +336,98 @@ io.sockets.on("connection", function (socket) {
 	});
 
 	//Room functions
-	socket.on("createRoom", function(name) {
+	socket.on("createRoom", function(name, boardSize) {
 		if (people[socket.id].inroom) {
 			socket.emit("update", "You are in a room. Please leave it first to create your own.");
 		} else if (!people[socket.id].owns) {
+			socket.emit("hideCreateRoomButton");
+			socket.emit("showLeaveButton");  
 			var id = uuid.v4();
-			var room = new Room(name, id, socket.id);
+			var room = new Room(name, id, socket.id, boardSize);
 			rooms[id] = room;
+			socket.emit("sendRoomID", {id: id,
+									   active: true}
+						);
+			
+			//var myRooms = {};
+			//for(var prop in rooms) {
+				//if (rooms[prop].s === boardSize)
+			//	myRooms[prop] = rooms[prop];
+    // `prop` contains the name of each property, i.e. `'code'` or `'items'`
+    // consequently, `data[prop]` refers to the value of each property, i.e.
+    // either `42` or the array
+//}
 			sizeRooms = _.size(rooms);
-			io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms});
+			io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: boardSize});
 			//add room to socket, and auto join the creator of the room
-			socket.room = name;
-			socket.join(socket.room);
 			people[socket.id].owns = id;
-			people[socket.id].inroom = id;
-			room.addPerson(socket.id);
+			playerSetup(room, socket.id, id, 'Z', name);
+			room.setRandPic();
 			socket.emit("update", "Welcome to " + room.name + ".");
-			socket.emit("sendRoomID", {id: id});
 			chatHistory[socket.room] = [];
 		} else {
 			socket.emit("update", "You have already created a room.");
 		}
 	});
 
-	socket.on("check", function(name, fn) {
-		var match = false;
+	socket.on("checkNames", function(roomname, username, fn) {
+		var roomExists = userExists = false;
 		_.find(rooms, function(key,value) {
-			if (key.name === name)
-				return match = true;
+			if (key.name === roomname)
+				return roomExists = true;
 		});
-		fn({result: match});
+
+		_.find(people, function(key,value) {
+			if (key.name.toLowerCase() === username.toLowerCase())
+				return userExists = true;
+		});
+		
+		if (userExists) {//provide unique username:
+			var randomNumber=Math.floor(Math.random()*1001);
+			do {
+				var proposedName = username+randomNumber;
+				_.find(people, function(key,value) {
+					if (key.name.toLowerCase() === proposedName.toLowerCase())
+						return userExists = true;
+				});
+			} while (!userExists);
+		}
+		fn({roomExists: roomExists,
+			userExists: userExists,
+			proposedName: proposedName,
+		});
+		
 	});
+
+	
+	socket.on("checkAnswer", function(answer, fn) {
+		socket.emit("disableCheckAnswerButton");
+		var match = false;
+		var room = getRoom();
+		if (room.currentPic === answer)
+			match = true;
+		fn({result: match,
+			attempts: people[socket.id].attempts -1
+		});
+	});
+	
+	socket.on("adjustScore", function(data) {
+		var room = getRoom();
+			people[socket.id].score += data.score;
+			if (data.decreaseAttempts) {
+				people[socket.id].attempts -= 1;
+			}
+			data.myCreatorScore = people[room.people[0]].score;
+			data.myJoinerScore = people[room.people[1]].score;
+		    io.sockets.in(socket.room).emit('sendScoresToClients', data);
+	});	
 
 	socket.on("removeRoom", function(id) {
 		 var room = rooms[id];
 		 if (socket.id === room.owner) {
 			purge(socket, "removeRoom");
 		} else {
-                	socket.emit("update", "Only the owner can remove a room.");
+         	socket.emit("update", "Only the owner can remove a room.");
 		}
 	});
 
@@ -335,14 +443,13 @@ io.sockets.on("connection", function (socket) {
 					if (people[socket.id].inroom !== null) {
 				    		socket.emit("update", "You are already in a room ("+rooms[people[socket.id].inroom].name+"), please leave it first to join another room.");
 				    	} else {
-						room.addPerson(socket.id);
-						people[socket.id].inroom = id;
-						socket.room = room.name;
-						socket.join(socket.room);
-						user = people[socket.id];
-						io.sockets.in(socket.room).emit("update", user.name + " has connected to " + room.name + " room.");
+						socket.emit("hideCreateRoomButton");
+						socket.emit("showLeaveButton"); 
+						playerSetup(room, socket.id, id, 'O');
+						io.sockets.in(socket.room).emit("update", people[socket.id].name + " has connected to " + room.name + " room.");
 						socket.emit("update", "Welcome to " + room.name + ".");
 						socket.emit("sendRoomID", {id: id});
+						io.sockets.in(socket.room).emit("showStartButton");
 						var keys = _.keys(chatHistory);
 						if (_.contains(keys, socket.room)) {
 							socket.emit("history", chatHistory[socket.room]);
@@ -355,9 +462,138 @@ io.sockets.on("connection", function (socket) {
 		}
 	});
 
+	socket.on("startGame", function(id) {
+		var room = getRoom();
+		room.setUpPlayingBoard();
+		people[room.people[0]].score = 0;
+		people[room.people[1]].score = 0;
+		var data= {
+			creatorName:	people[room.people[0]].name, 
+			joinerName:		people[room.people[1]].name,
+			randPic:		room.getRandPic()
+		};
+		io.sockets.in(socket.room).emit("showBoard", data);
+    	io.sockets.in(socket.room).emit('update', 'New game started!');
+	});
+
 	socket.on("leaveRoom", function(id) {
 		var room = rooms[id];
 		if (room)
 			purge(socket, "leaveRoom");
 	});
+	
+	socket.on("sendClickedButton", function(data) {
+		var room = getRoom();
+		getScores(room, data, people[socket.id]);
+		adjustScreens(data, people[socket.id]);
+		validateMoves(room, data);
+			
+	});
+	
+/*
+		socket.on("validMoves", function(data) {
+	var room = getRoom();
+	data.myPlayerTile = people[socket.id].tile;
+	data.myPlayerTile == "Z" ? data.secondPlayerTile = "O" : data.secondPlayerTile = "Z";
+		console.log("my player "+ data.myPlayerTile + "second player "+ data.secondPlayerTile);
+	if(people[socket.id].name == people[room.people[0]].name) {
+		data.myPlayerName = people[room.people[0]].name;
+		data.secondPlayerName = people[room.people[1]].name;
+	} else {
+		data.myPlayerName = people[room.people[1]].name;
+		data.secondPlayerName = people[room.people[0]].name;		
+	}
+	var validMoves = room.checkValidMoves(data);
+	data.message = "";
+	if(!validMoves.myPlayerHasValidMoves || !validMoves.secondPlayerHasValidMoves) {
+			data.message = "Game Over \n";
+		if(!validMoves.myPlayerHasValidMoves & !validMoves.secondPlayerHasValidMoves) {
+			data.message += "Neither of players have any more valid moves left";
+		} else if (!validMoves.myPlayerHasValidMoves){
+			data.message += "Player" +data.myPlayerName+ "has no more valid moves";
+		} else {
+			data.message += "Player" +data.secondPlayerName+ "has no more valid moves";
+		}
+		io.sockets.in(socket.room).emit('endGame', data);
+		console.log("Somebody has no more valid moves");
+	} else {
+		console.log("Both players have still valid moves");
+	}
+	});*/
+	
+	//HELPER FUNCTIONS
+	
+	var getRoom = function (){
+		var roomID = people[socket.id].inroom;
+		var room = rooms[roomID];
+		return room;
+	};
+	
+	var playerSetup = function (room, socketId, id, tile, name){
+		people[socketId].id = socketId;
+		people[socketId].inroom = id;
+		people[socketId].tile = tile;
+		people[socketId].score = 0;
+		people[socketId].attempts = 3;
+		people[socketId].canAnswer = false;
+		people[socketId].active = false;
+		room.addPerson(socketId);
+		socket.room = name || room.name;
+		socket.join(socket.room);
+	};
+	
+	var validateMoves = function (room, data){
+	    var peoples = room.getPeople();
+  		var playersWithValidMoves = peoples.length;
+		var highestScore = 0;
+  		var winnersId = '';
+		for(var i = 0; i < peoples.length; i++) {
+		  data.myPlayerTile = people[peoples[i]].tile;   
+		  room.checkValidMoves(data);
+		  if(!data.validMoves) {
+		    playersWithValidMoves -= 1;
+		  }
+		  data.myPlayerScore = people[peoples[i]].score; 
+		  if(data.myPlayerScore > highestScore) {
+		  	winnersId = people[peoples[i]].id;
+		  	highestScore = data.myPlayerScore;
+		  }
+		}
+		if (playersWithValidMoves === 0) {
+			for(i = 0; i < peoples.length; i++) {
+				if (peoples[i] == winnersId) {
+    				io.sockets.socket(peoples[i]).emit('update', 'You won!');
+				} else {
+    				io.sockets.socket(peoples[i]).emit('update', people[winnersId].name + ' won, you lost!');
+				}
+			}
+			io.sockets.in(socket.room).emit('endGame', data, 'Press Start button for a new game!');
+			io.sockets.in(socket.room).emit("showStartButton");
+		}
+	};
+	
+	var getScores = function (room, data, socketId){
+		data.myPlayerTile = socketId.tile;
+		data.score = 0;
+		room.checkMove(data);
+		socketId.score += data.score;
+		if(data.score > 0) {
+			socketId.canAnswer = true;
+		}
+		data.myCreatorScore = people[room.people[0]].score;
+		data.myJoinerScore = people[room.people[1]].score;
+	};
+	
+	var adjustScreens = function (data, socketId){
+		socket.broadcast.to(socket.room).emit("toggleActive");
+		if(socketId.canAnswer) {
+			socket.emit("enableCheckAnswerButton");	
+		}
+		if(socketId.attempts<1) {
+			socket.emit("disableCheckAnswerButton");
+		}
+	    io.sockets.in(socket.room).emit('sendScoresToClients', data);
+	    socket.emit("setTransparent", data);
+	    socket.broadcast.to(socket.room).emit("setUncovered", data);
+	};
 });
