@@ -95,7 +95,7 @@ app.get('/:size', function(req, res) {
 	}
 	
   	res.render('pages/index', {
-	  	mainScreen:"../partials/gameScreen",
+	  	mainScreen:"../partials/gameScreen.ejs",
 	  	active:"not-active",
 	  	rows:12,
 	  	boardSize: board
