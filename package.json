@@ -1,9 +1,6 @@
 {
   "name": "chat",
   "version": "0.0.1",
-  "engines": {
-    "node": "4.2.1"
-  },
   "description": "node.js/socket.io chat app",
   "main": "server.js",
   "dependencies": {
@@ -18,16 +15,16 @@
     "mongoose": "^4.5.4",
     "morgan": "^1.7.0",
     "node-uuid": "^1.4.7",
-    "nodemon": "~1.0.13",
-    "npid": "~0.4.0",
+    "nodemon": "^1.9.2",
+    "npid": "^0.4.0",
     "passport": "^0.3.2",
     "passport-facebook": "^2.1.1",
     "passport-google-oauth": "^1.0.0",
     "passport-local": "^1.0.0",
     "passport-twitter": "^1.0.4",
-    "shrinkwrap": "~0.0.3",
+    "shrinkwrap": "0.0.3",
     "socket.io": "^0.9.16",
-    "underscore": "~1.5.2"
+    "underscore": "^1.5.2"
   },
   "devDependencies": {},
   "scripts": {},
