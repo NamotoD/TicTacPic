@@ -1,9 +1,6 @@
 {
   "name": "chat",
   "version": "0.0.1",
-  "engines": {
-    "node": "4.2.1"
-  },
   "description": "node.js/socket.io chat app",
   "main": "server.js",
   "dependencies": {
@@ -15,7 +12,7 @@
     "express": "^4.14.0",
     "express-session": "^1.14.0",
     "method-override": "^2.3.6",
-    "mongoose": "^4.5.3",
+    "mongoose": "^4.5.4",
     "morgan": "^1.7.0",
     "node-uuid": "^1.4.7",
     "nodemon": "~1.0.13",
