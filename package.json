@@ -3,8 +3,6 @@
   "version": "0.0.1",
   "description": "node.js/socket.io chat app",
   "main": "server.js",
-  "engines" : { "node" : "4.2.1",
-                  "npm" : "2.14.7"},
   "dependencies": {
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "^1.15.2",
