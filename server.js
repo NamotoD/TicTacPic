@@ -2,25 +2,20 @@ var express = require('express')
 , npid = require("npid")
 , uuid = require('node-uuid')
 , Room = require('./room.js')
-, _ = require('underscore')._;
+, _ = require('underscore')._
+, mongoose = require('mongoose')
+, passport = require('passport')
+, flash    = require('connect-flash')
+, morgan       = require('morgan')
+, methodOverride = require('method-override')
+, session = require('express-session')
+, bodyParser = require('body-parser')
+, cookieParser = require('cookie-parser')
 
-
-
-var mongoose = require('mongoose');
-var passport = require('passport');
-var flash    = require('connect-flash');
-var morgan       = require('morgan');
-
-var methodOverride = require('method-override');
-var session = require('express-session');
-var bodyParser = require('body-parser');
-var cookieParser = require('cookie-parser');
-
-
-var app = express();
-var server = require('http').createServer(app);
-var io = require("socket.io").listen(server);
-var configDB = require('./config/database.js');
+, app = express()
+, server = require('http').createServer(app)
+, io = require("socket.io").listen(server)
+, configDB = require('./config/database.js');
 
 app.set('socketio', io);
 
