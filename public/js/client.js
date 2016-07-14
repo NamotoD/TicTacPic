@@ -525,10 +525,10 @@ $(document).ready(function() {
     $("#rooms").append("<li class=\"list-group-item active\">List of rooms <span class=\"badge\">"+data.count+"</span></li>");
     if (!jQuery.isEmptyObject(data.rooms)) { 
       $.each(data.rooms, function(id, room) {
-        if (room.s === data.s) {
+        //if (room.s === data.s) {
           var html = "<button id="+id+" data-roomName="+room.name+" class='btn btn-default btn-xs' data-toggle='modal' data-target='#userModal' >Join</button>" + " " + "<button id="+id+" class='removeRoomBtn btn btn-default btn-xs'>Remove</button>";
           $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.s + "</span> " + html + "</li>");
-        }
+        //}
       });
     } else {
       $("#listOfRooms").append("<li class=\"list-group-item\">There are no rooms yet.</li>");
