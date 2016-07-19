@@ -99,8 +99,8 @@ app.get('/:size', function(req, res) {
   	res.render('pages/index', {
 	  	mainScreen:"../partials/gameScreen",
 	  	active:"not-active",
-	  	rows:4,
-	  	boardSize: "small"
+	  	rows:12,
+	  	boardSize: "large"
   	});
 });
 
