@@ -519,23 +519,31 @@ $(document).ready(function() {
     $("#msgs").append("<li><strong><span class='text-muted'>" + timeFormat(msTime) + person.name + "</span></strong> "+s+": " + msg + "</li>");
   });
 
+$('body').on('click', '#rooms li', function(){
+      socket.emit('sendRoomSize', $(this).attr("id"));
+});
+
   socket.on("roomList", function(data) {
     $("#rooms").text("");
     $("#listOfRooms").text("");
     $("#rooms").append(
-              "<li role=\"presentation\" class=\"active\"><a href=\"#\">Large <span class=\"badge\">"+ (typeof data.count.large != 'undefined' ? data.count.large : 0) +"</span></a></li>" +
-              "<li role=\"presentation\"><a href=\"#\">Medium <span class=\"badge\">"+ (typeof data.count.medium != 'undefined' ? data.count.medium : 0) +"</span></a></li>" +
-              "<li role=\"presentation\"><a href=\"#\">Small <span class=\"badge\">"+ (typeof data.count.small != 'undefined' ? data.count.small : 0) +"</span></a></li>");
+              "<li id = \"12\"role=\"presentation\" class=\"active\"><a href=\"#\">Large <span class=\"badge\">"+ (typeof data.count.large != 'undefined' ? data.count.large : 0) +"</span></a></li>" +
+              "<li id = \"6\" role=\"presentation\"><a href=\"#\">Medium <span class=\"badge\">"+ (typeof data.count.medium != 'undefined' ? data.count.medium : 0) +"</span></a></li>" +
+              "<li id = \"4\" role=\"presentation\"><a href=\"#\">Small <span class=\"badge\">"+ (typeof data.count.small != 'undefined' ? data.count.small : 0) +"</span></a></li>");
     if (!jQuery.isEmptyObject(data.rooms)) { 
       $.each(data.rooms, function(id, room) {
-        //if (room.s === data.s) {
+        if (room.s === parseInt(data.s)) {
           var html = "<button id="+id+" data-roomName="+room.name+" class='btn btn-default btn-xs' data-toggle='modal' data-target='#userModal' >Join</button>" + " " + "<button id="+id+" class='removeRoomBtn btn btn-default btn-xs'>Remove</button>";
           $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.s + "</span> " + html + "</li>");
-        //}
+        } else {
+      $("#listOfRooms").append("<li class=\"list-group-item\">There are other room sizes available!</li>");
+    }
       });
     } else {
       $("#listOfRooms").append("<li class=\"list-group-item\">There are no rooms yet.</li>");
     }
+    $('#rooms li').removeClass('active');
+    $('#'+data.s.toString()).addClass('active');
   });
 
   socket.on("sendRoomID", function(data) {
