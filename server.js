@@ -15,6 +15,9 @@ var express = require('express')
 , app = express()
 , server = require('http').createServer(app)
 , io = require("socket.io").listen(server)
+,
+    sessionStore     = require('connect-mongo')(session), // find a working session store (have a look at the readme)
+    passportSocketIo = require("passport.socketio")
 , configDB = require('./config/database.js');
 
 app.set('socketio', io);
@@ -35,7 +38,11 @@ app.use(bodyParser()); // get information from html forms
 app.set('view engine', 'ejs'); // set up ejs for templating
 
 // required for passport
-app.use(session({ secret: 'ilovescotchscotchyscotchscotch' })); // session secret
+app.use(session({
+  key: 'express.sid',
+  store: new sessionStore({ mongooseConnection: mongoose.connection }),
+  secret: 'keyboard cat'
+}));
 app.use(passport.initialize());
 app.use(passport.session()); // persistent login sessions
 app.use(flash()); // use connect-flash for flash messages stored in session
@@ -98,6 +105,32 @@ app.get('/:size', function(req, res) {
 });
 
 io.set("log level", 1);
+// With Socket.io < 1.0 
+io.set('authorization', passportSocketIo.authorize({
+  cookieParser:cookieParser,
+  key:         'express.sid',       // the name of the cookie where express/connect stores its session_id 
+  secret:      'keyboard cat',    // the session_secret to parse the cookie 
+  store: new sessionStore({ mongooseConnection: mongoose.connection }),        // we NEED to use a sessionstore. no memorystore please 
+  success:     onAuthorizeSuccess,  // *optional* callback on success - read more below 
+  fail:        onAuthorizeFail,     // *optional* callback on fail/error - read more below 
+}));
+ 
+function onAuthorizeSuccess(data, accept){
+  console.log('successful connection to socket.io');
+ 
+  // The accept-callback still allows us to decide whether to 
+  // accept the connection or not. 
+  accept(null, true);
+}
+ 
+function onAuthorizeFail(data, message, error, accept){
+  if(error)
+    throw new Error(message);
+  console.log('failed connection to socket.io:', message);
+ 
+  // We use this callback to log all of our failed connections. 
+  accept(null, false);
+}
 var people = {};
 var rooms = {};
 var sockets = [];
@@ -246,9 +279,14 @@ function purge(s, action) {
 }
 
 io.sockets.on("connection", function (socket) {
-		console.log(socket.id);
+	var userId = socket.handshake.user._id;
+	console.log(socket.handshake.user.local.size);
 	sizePeople = _.size(people);
-	sizeRooms = _.size(rooms);
+	sizeRooms = _.countBy(_.pluck(rooms, 's'), function(num) {
+  if (num === 4)return 'small';
+  else if (num === 8)return 'medium';
+  else return 'large';
+});
 	io.sockets.emit("update-people", {people: people, count: sizePeople});
 	socket.emit("roomList", {rooms: rooms, count: sizeRooms});
 
