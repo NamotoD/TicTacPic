@@ -522,7 +522,10 @@ $(document).ready(function() {
   socket.on("roomList", function(data) {
     $("#rooms").text("");
     $("#listOfRooms").text("");
-    $("#rooms").append("<li class=\"list-group-item active\">List of rooms <span class=\"badge\">"+data.count+"</span></li>");
+    $("#rooms").append(
+              "<li role=\"presentation\" class=\"active\"><a href=\"#\">Large <span class=\"badge\">"+ (typeof data.count.large != 'undefined' ? data.count.large : 0) +"</span></a></li>" +
+              "<li role=\"presentation\"><a href=\"#\">Medium <span class=\"badge\">"+ (typeof data.count.medium != 'undefined' ? data.count.medium : 0) +"</span></a></li>" +
+              "<li role=\"presentation\"><a href=\"#\">Small <span class=\"badge\">"+ (typeof data.count.small != 'undefined' ? data.count.small : 0) +"</span></a></li>");
     if (!jQuery.isEmptyObject(data.rooms)) { 
       $.each(data.rooms, function(id, room) {
         //if (room.s === data.s) {
