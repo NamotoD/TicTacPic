@@ -188,11 +188,7 @@ function purge(s, action) {
 				delete people[s.id]; //delete user from people collection
 				delete chatHistory[room.name]; //delete the chat history
 	sizePeople = _.size(people);
-	sizeRooms = _.countBy(_.pluck(rooms, 's'), function(num) {
-  if (num === 4)return 'small';
-  else if (num === 8)return 'medium';
-  else return 'large';
-});
+	sizeRooms = getSizeRooms(rooms);
 	io.sockets.emit("update-people", {people: people, count: sizePeople});
 	io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: s.handshake.user.local.size});
 				var o = _.findWhere(sockets, {'id': s.id});
@@ -217,11 +213,7 @@ function purge(s, action) {
 				room.people = _.without(room.people, s.id); //remove people from the room:people{}collection
 				delete chatHistory[room.name]; //delete the chat history
 	sizePeople = _.size(people);
-	sizeRooms = _.countBy(_.pluck(rooms, 's'), function(num) {
-  if (num === 4)return 'small';
-  else if (num === 8)return 'medium';
-  else return 'large';
-});
+	sizeRooms = getSizeRooms(rooms);
 	io.sockets.emit("update-people", {people: people, count: sizePeople});
 	io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: s.handshake.user.local.size});
 			} else if (action === "leaveRoom") { //room owner leaves room
@@ -244,11 +236,7 @@ function purge(s, action) {
 				people[s.id].owns = null;
 				room.people = _.without(room.people, s.id); //remove people from the room:people{}collection
 				delete chatHistory[room.name]; //delete the chat history
-	sizeRooms = _.countBy(_.pluck(rooms, 's'), function(num) {
-  if (num === 4)return 'small';
-  else if (num === 8)return 'medium';
-  else return 'large';
-});
+	sizeRooms = getSizeRooms(rooms);
 	io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: s.handshake.user.local.size});
 			}
 		} else {//user in room but does not own room
@@ -289,16 +277,19 @@ function purge(s, action) {
 		}		
 	}
 }
+function getSizeRooms(rooms) {
+	var sizeRooms = _.countBy(_.pluck(rooms, 's'), function(num) {
+	    if (num === 4)return 'small';
+	    else if (num === 8)return 'medium';
+	    else return 'large';
+	});return sizeRooms;
+}
 
 io.sockets.on("connection", function (socket) {
 	var userId = socket.handshake.user._id;
 	console.log(socket.handshake.user.local.size);
 	sizePeople = _.size(people);
-	sizeRooms = _.countBy(_.pluck(rooms, 's'), function(num) {
-  if (num === 4)return 'small';
-  else if (num === 8)return 'medium';
-  else return 'large';
-});
+	sizeRooms = getSizeRooms(rooms);
 	io.sockets.emit("update-people", {people: people, count: sizePeople});
 	io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: socket.handshake.user.local.size});
 
@@ -308,11 +299,7 @@ io.sockets.on("connection", function (socket) {
 			socket.emit("update", "You have connected to the server.");
 			io.sockets.emit("update", people[socket.id].name + " is online.");
 	sizePeople = _.size(people);
-	sizeRooms = _.countBy(_.pluck(rooms, 's'), function(num) {
-  if (num === 4)return 'small';
-  else if (num === 8)return 'medium';
-  else return 'large';
-});
+	sizeRooms = getSizeRooms(rooms);
 	io.sockets.emit("update-people", {people: people, count: sizePeople});
 	io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: socket.handshake.user.local.size});
 			socket.emit("joined"); //extra emit for GeoLocation
@@ -406,11 +393,7 @@ io.sockets.on("connection", function (socket) {
     // consequently, `data[prop]` refers to the value of each property, i.e.
     // either `42` or the array
 //}
-	sizeRooms = _.countBy(_.pluck(rooms, 's'), function(num) {
-  if (num === 4)return 'small';
-  else if (num === 8)return 'medium';
-  else return 'large';
-});
+	sizeRooms = getSizeRooms(rooms);
 	io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: socket.handshake.user.local.size});
 			//add room to socket, and auto join the creator of the room
 			people[socket.id].owns = id;
@@ -465,30 +448,26 @@ io.sockets.on("connection", function (socket) {
 	});
 		
 	socket.on("sendRoomSize", function(roomSize) {
+		
+	// load up the user model
+	var User            = require('./app/models/user');// get the user starlord55
+	// get a user with ID of 1
+	User.findById(userId, function(err, user) {
+	  if (err) throw err;
 	
-// load up the user model
-var User            = require('./app/models/user');// get the user starlord55
-// get a user with ID of 1
-User.findById(userId, function(err, user) {
-  if (err) throw err;
+	  // change the users location
+	  user.local.size = parseInt(roomSize);
+	
+	  // save the user
+	  user.save(function(err) {
+	    if (err) throw err;
+	
+	    console.log('User successfully updated!');
+	  });
+	
+	});
 
-  // change the users location
-  user.local.size = parseInt(roomSize);
-
-  // save the user
-  user.save(function(err) {
-    if (err) throw err;
-
-    console.log('User successfully updated!');
-  });
-
-});
-
-sizeRooms = _.countBy(_.pluck(rooms, 's'), function(num) {
-  if (num === 4)return 'small';
-  else if (num === 8)return 'medium';
-  else return 'large';
-});
+	sizeRooms = getSizeRooms(rooms);
 	io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: roomSize});
 	});
 	
