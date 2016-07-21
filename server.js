@@ -80,12 +80,16 @@ app.get('/', function(req, res) {
 });
 
 app.get('/:size', function(req, res) {
-	var size  = parseInt(req.params.size),
+	// load up the user model
+	var User            = require('./app/models/user');// get the user
+	// get a user with ID of 1
+	User.findById(req.user._id, function(err, user) {
+	  if (err) throw err;
+	
+	  // show the one user
+	  console.log(user);
+	var size  = parseInt(user.local.size),
 		board ="";
-		
-    var io = req.app.get('socketio');
-	var sizePeople = _.size(people);
-	var sizeRooms = _.size(rooms);
 	if ( size === 4){
 		board = "small";
 	} else if (size === 6){
@@ -97,9 +101,10 @@ app.get('/:size', function(req, res) {
   	res.render('pages/index', {
 	  	mainScreen:"../partials/gameScreen",
 	  	active:"not-active",
-	  	rows:12,
-	  	boardSize: "large"
+	  	rows:size,
+	  	boardSize: board
   	});
+	});
 });
 
 io.set("log level", 1);
@@ -129,6 +134,7 @@ function onAuthorizeFail(data, message, error, accept){
   // We use this callback to log all of our failed connections. 
   accept(null, false);
 }
+var userId = "";
 var people = {};
 var rooms = {};
 var sockets = [];
@@ -286,7 +292,7 @@ function getSizeRooms(rooms) {
 }
 
 io.sockets.on("connection", function (socket) {
-	var userId = socket.handshake.user._id;
+	userId = socket.handshake.user._id;
 	console.log(socket.handshake.user.local.size);
 	sizePeople = _.size(people);
 	sizeRooms = getSizeRooms(rooms);
@@ -306,9 +312,86 @@ io.sockets.on("connection", function (socket) {
 			sockets.push(socket);
 	});
 
+	//Room functions
+	socket.on("createRoom", function(name, boardSize) {
+		if (people[socket.id].inroom) {
+			socket.emit("update", "You are in a room. Please leave it first to create your own.");
+		} else if (!people[socket.id].owns) {
+			socket.emit("hideCreateRoomButton");
+			socket.emit("showLeaveButton");  
+			var id = uuid.v4();
+			var room = new Room(name, id, socket.id, boardSize);
+			rooms[id] = room;
+			socket.emit("sendRoomID", {id: id,
+									   active: true}
+						);
+			sizeRooms = getSizeRooms(rooms);
+			io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: socket.handshake.user.local.size});
+			//add room to socket, and auto join the creator of the room
+			people[socket.id].owns = id;
+			playerSetup(room, socket.id, id, 'Z', name);
+			room.setRandPic();
+			socket.emit("update", "Welcome to " + room.name + ".");
+			chatHistory[socket.room] = [];
+		} else {
+			socket.emit("update", "You have already created a room.");
+		}
+	});
+
+	socket.on("joinRoom", function(id) {
+		if (typeof people[socket.id] !== "undefined") {
+			var room = rooms[id];
+			if (socket.id === room.owner) {
+				socket.emit("update", "You are the owner of this room and you have already been joined.");
+			} else {
+				if (_.contains((room.people), socket.id)) {
+					socket.emit("update", "You have already joined this room.");
+				} else {
+					if (people[socket.id].inroom !== null) {
+				    		socket.emit("update", "You are already in a room ("+rooms[people[socket.id].inroom].name+"), please leave it first to join another room.");
+				    	} else {
+						socket.emit("hideCreateRoomButton");
+						socket.emit("showLeaveButton"); 
+						playerSetup(room, socket.id, id, 'O');
+						io.sockets.in(socket.room).emit("update", people[socket.id].name + " has connected to " + room.name + " room.");
+						socket.emit("update", "Welcome to " + room.name + ".");
+						socket.emit("sendRoomID", {id: id});
+						io.sockets.in(socket.room).emit("showStartButton");
+						var keys = _.keys(chatHistory);
+						if (_.contains(keys, socket.room)) {
+							socket.emit("history", chatHistory[socket.room]);
+						}
+					}
+				}
+			}
+		} else {
+			socket.emit("update", "Please enter a valid name first.");
+		}
+	});
+
+	socket.on("startGame", function(id) {
+		var room = getRoom();
+		room.setUpPlayingBoard();
+		people[room.people[0]].score = 0;
+		people[room.people[1]].score = 0;
+		var data= {
+			creatorName:	people[room.people[0]].name, 
+			joinerName:		people[room.people[1]].name,
+			randPic:		room.getRandPic()
+		};
+		io.sockets.in(socket.room).emit("showBoard", data);
+    	io.sockets.in(socket.room).emit('update', 'New game started!');
+	});
+
+	socket.on("leaveRoom", function(id) {
+		var room = rooms[id];
+		if (room)
+			purge(socket, "leaveRoom");
+	});
+
 	socket.on("getOnlinePeople", function(fn) {
-                fn({people: people});
-        });
+        fn({people: people});
+    });
 
 	socket.on("countryUpdate", function(data) { //we know which country the user is from
 		country = data.country.toLowerCase();
@@ -371,41 +454,6 @@ io.sockets.on("connection", function (socket) {
 		}
 	});
 
-	//Room functions
-	socket.on("createRoom", function(name, boardSize) {
-		if (people[socket.id].inroom) {
-			socket.emit("update", "You are in a room. Please leave it first to create your own.");
-		} else if (!people[socket.id].owns) {
-			socket.emit("hideCreateRoomButton");
-			socket.emit("showLeaveButton");  
-			var id = uuid.v4();
-			var room = new Room(name, id, socket.id, boardSize);
-			rooms[id] = room;
-			socket.emit("sendRoomID", {id: id,
-									   active: true}
-						);
-			
-			//var myRooms = {};
-			//for(var prop in rooms) {
-				//if (rooms[prop].s === boardSize)
-			//	myRooms[prop] = rooms[prop];
-    // `prop` contains the name of each property, i.e. `'code'` or `'items'`
-    // consequently, `data[prop]` refers to the value of each property, i.e.
-    // either `42` or the array
-//}
-	sizeRooms = getSizeRooms(rooms);
-	io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: socket.handshake.user.local.size});
-			//add room to socket, and auto join the creator of the room
-			people[socket.id].owns = id;
-			playerSetup(room, socket.id, id, 'Z', name);
-			room.setRandPic();
-			socket.emit("update", "Welcome to " + room.name + ".");
-			chatHistory[socket.room] = [];
-		} else {
-			socket.emit("update", "You have already created a room.");
-		}
-	});
-
 	socket.on("checkNames", function(roomname, username, fn) {
 		var roomExists = userExists = false;
 		_.find(rooms, function(key,value) {
@@ -450,7 +498,7 @@ io.sockets.on("connection", function (socket) {
 	socket.on("sendRoomSize", function(roomSize) {
 		
 	// load up the user model
-	var User            = require('./app/models/user');// get the user starlord55
+	var User = require('./app/models/user');// get the user
 	// get a user with ID of 1
 	User.findById(userId, function(err, user) {
 	  if (err) throw err;
@@ -473,13 +521,13 @@ io.sockets.on("connection", function (socket) {
 	
 	socket.on("adjustScore", function(data) {
 		var room = getRoom();
-			people[socket.id].score += data.score;
-			if (data.decreaseAttempts) {
-				people[socket.id].attempts -= 1;
-			}
-			data.myCreatorScore = people[room.people[0]].score;
-			data.myJoinerScore = people[room.people[1]].score;
-		    io.sockets.in(socket.room).emit('sendScoresToClients', data);
+		people[socket.id].score += data.score;
+		if (data.decreaseAttempts) {
+			people[socket.id].attempts -= 1;
+		}
+		data.myCreatorScore = people[room.people[0]].score;
+		data.myJoinerScore = people[room.people[1]].score;
+	    io.sockets.in(socket.room).emit('sendScoresToClients', data);
 	});	
 
 	socket.on("removeRoom", function(id) {
@@ -490,57 +538,6 @@ io.sockets.on("connection", function (socket) {
          	socket.emit("update", "Only the owner can remove a room.");
 		}
 	});
-
-	socket.on("joinRoom", function(id) {
-		if (typeof people[socket.id] !== "undefined") {
-			var room = rooms[id];
-			if (socket.id === room.owner) {
-				socket.emit("update", "You are the owner of this room and you have already been joined.");
-			} else {
-				if (_.contains((room.people), socket.id)) {
-					socket.emit("update", "You have already joined this room.");
-				} else {
-					if (people[socket.id].inroom !== null) {
-				    		socket.emit("update", "You are already in a room ("+rooms[people[socket.id].inroom].name+"), please leave it first to join another room.");
-				    	} else {
-						socket.emit("hideCreateRoomButton");
-						socket.emit("showLeaveButton"); 
-						playerSetup(room, socket.id, id, 'O');
-						io.sockets.in(socket.room).emit("update", people[socket.id].name + " has connected to " + room.name + " room.");
-						socket.emit("update", "Welcome to " + room.name + ".");
-						socket.emit("sendRoomID", {id: id});
-						io.sockets.in(socket.room).emit("showStartButton");
-						var keys = _.keys(chatHistory);
-						if (_.contains(keys, socket.room)) {
-							socket.emit("history", chatHistory[socket.room]);
-						}
-					}
-				}
-			}
-		} else {
-			socket.emit("update", "Please enter a valid name first.");
-		}
-	});
-
-	socket.on("startGame", function(id) {
-		var room = getRoom();
-		room.setUpPlayingBoard();
-		people[room.people[0]].score = 0;
-		people[room.people[1]].score = 0;
-		var data= {
-			creatorName:	people[room.people[0]].name, 
-			joinerName:		people[room.people[1]].name,
-			randPic:		room.getRandPic()
-		};
-		io.sockets.in(socket.room).emit("showBoard", data);
-    	io.sockets.in(socket.room).emit('update', 'New game started!');
-	});
-
-	socket.on("leaveRoom", function(id) {
-		var room = rooms[id];
-		if (room)
-			purge(socket, "leaveRoom");
-	});
 	
 	socket.on("sendClickedButton", function(data) {
 		var room = getRoom();
@@ -549,37 +546,6 @@ io.sockets.on("connection", function (socket) {
 		validateMoves(room, data);
 			
 	});
-	
-/*
-		socket.on("validMoves", function(data) {
-	var room = getRoom();
-	data.myPlayerTile = people[socket.id].tile;
-	data.myPlayerTile == "Z" ? data.secondPlayerTile = "O" : data.secondPlayerTile = "Z";
-		console.log("my player "+ data.myPlayerTile + "second player "+ data.secondPlayerTile);
-	if(people[socket.id].name == people[room.people[0]].name) {
-		data.myPlayerName = people[room.people[0]].name;
-		data.secondPlayerName = people[room.people[1]].name;
-	} else {
-		data.myPlayerName = people[room.people[1]].name;
-		data.secondPlayerName = people[room.people[0]].name;		
-	}
-	var validMoves = room.checkValidMoves(data);
-	data.message = "";
-	if(!validMoves.myPlayerHasValidMoves || !validMoves.secondPlayerHasValidMoves) {
-			data.message = "Game Over \n";
-		if(!validMoves.myPlayerHasValidMoves & !validMoves.secondPlayerHasValidMoves) {
-			data.message += "Neither of players have any more valid moves left";
-		} else if (!validMoves.myPlayerHasValidMoves){
-			data.message += "Player" +data.myPlayerName+ "has no more valid moves";
-		} else {
-			data.message += "Player" +data.secondPlayerName+ "has no more valid moves";
-		}
-		io.sockets.in(socket.room).emit('endGame', data);
-		console.log("Somebody has no more valid moves");
-	} else {
-		console.log("Both players have still valid moves");
-	}
-	});*/
 	
 	//HELPER FUNCTIONS
 	
