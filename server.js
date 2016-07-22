@@ -70,16 +70,16 @@ server.listen(app.get('port'),function(){
   console.log('Express server listening on port ' + app.get('port'));
 });
 
-app.get('/', function(req, res) {
-  	res.render('pages/index', {
-	  	mainScreen:"../partials/welcomeScreen",
+app.get('/lobby', function(req, res) {
+  	res.render('pages/lobby', {
+	  	mainScreen:"../partials/gameScreen",
 	  	active:"not-active",
 	  	rows:12,
 	  	boardSize: "large"
   	});
 });
 
-app.get('/:size', function(req, res) {
+app.get('/room', function(req, res) {
 	// load up the user model
 	var User            = require('./app/models/user');// get the user
 	// get a user with ID of 1
@@ -134,7 +134,7 @@ function onAuthorizeFail(data, message, error, accept){
   // We use this callback to log all of our failed connections. 
   accept(null, false);
 }
-var userId = "";
+var user = {};
 var people = {};
 var rooms = {};
 var sockets = [];
@@ -193,10 +193,10 @@ function purge(s, action) {
 				delete rooms[people[s.id].owns]; //delete the room
 				delete people[s.id]; //delete user from people collection
 				delete chatHistory[room.name]; //delete the chat history
-	sizePeople = _.size(people);
-	sizeRooms = getSizeRooms(rooms);
-	io.sockets.emit("update-people", {people: people, count: sizePeople});
-	io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: s.handshake.user.local.size});
+				sizePeople = _.size(people);
+				sizeRooms = getSizeRooms(rooms);
+				io.sockets.emit("update-people", {people: people, count: sizePeople});
+				io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: s.handshake.user.local.size});
 				var o = _.findWhere(sockets, {'id': s.id});
 				sockets = _.without(sockets, o);
 			} else if (action === "removeRoom") { //room owner removes room
@@ -218,10 +218,10 @@ function purge(s, action) {
 				people[s.id].owns = null;
 				room.people = _.without(room.people, s.id); //remove people from the room:people{}collection
 				delete chatHistory[room.name]; //delete the chat history
-	sizePeople = _.size(people);
-	sizeRooms = getSizeRooms(rooms);
-	io.sockets.emit("update-people", {people: people, count: sizePeople});
-	io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: s.handshake.user.local.size});
+				sizePeople = _.size(people);
+				sizeRooms = getSizeRooms(rooms);
+				io.sockets.emit("update-people", {people: people, count: sizePeople});
+				io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: s.handshake.user.local.size});
 			} else if (action === "leaveRoom") { //room owner leaves room
 				io.sockets.in(s.room).emit("update", "The owner (" +people[s.id].name + ") has left the room. The room is removed and you have been disconnected from it as well.");
 				io.sockets.in(s.room).emit("somePlayerLeftRoom");
@@ -242,8 +242,8 @@ function purge(s, action) {
 				people[s.id].owns = null;
 				room.people = _.without(room.people, s.id); //remove people from the room:people{}collection
 				delete chatHistory[room.name]; //delete the chat history
-	sizeRooms = getSizeRooms(rooms);
-	io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: s.handshake.user.local.size});
+				sizeRooms = getSizeRooms(rooms);
+				io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: s.handshake.user.local.size});
 			}
 		} else {//user in room but does not own room
 			if (action === "disconnect") {
@@ -292,35 +292,30 @@ function getSizeRooms(rooms) {
 }
 
 io.sockets.on("connection", function (socket) {
-	userId = socket.handshake.user._id;
+	user = socket.handshake.user;
 	console.log(socket.handshake.user.local.size);
-	sizePeople = _.size(people);
-	sizeRooms = getSizeRooms(rooms);
-	io.sockets.emit("update-people", {people: people, count: sizePeople});
-	io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: socket.handshake.user.local.size});
-
-	socket.on("joinserver", function(name, device) {
 		var ownerRoomID = inRoomID = myPlayerTile = null;
-			people[socket.id] = {"name" : name, "owns" : ownerRoomID, "inroom": inRoomID, "device": device, "tile": myPlayerTile};
+	socket.on("sendDevice", function(device) {
+			people[socket.id] = {"name" : user.local.userName, "owns" : ownerRoomID, "inroom": inRoomID, "device": device, "tile": myPlayerTile};
+			sizePeople = _.size(people);
+			sizeRooms = getSizeRooms(rooms);
+			io.sockets.emit("update-people", {people: people, count: sizePeople});
+			io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: socket.handshake.user.local.size});});
 			socket.emit("update", "You have connected to the server.");
-			io.sockets.emit("update", people[socket.id].name + " is online.");
-	sizePeople = _.size(people);
-	sizeRooms = getSizeRooms(rooms);
-	io.sockets.emit("update-people", {people: people, count: sizePeople});
-	io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: socket.handshake.user.local.size});
+			io.sockets.emit("update", user.local.userName + " is online.");
 			socket.emit("joined"); //extra emit for GeoLocation
 			sockets.push(socket);
-	});
 
 	//Room functions
-	socket.on("createRoom", function(name, boardSize) {
+	socket.on("createRoom", function() {
+		var name = people[socket.id].name;
 		if (people[socket.id].inroom) {
 			socket.emit("update", "You are in a room. Please leave it first to create your own.");
 		} else if (!people[socket.id].owns) {
 			socket.emit("hideCreateRoomButton");
 			socket.emit("showLeaveButton");  
 			var id = uuid.v4();
-			var room = new Room(name, id, socket.id, boardSize);
+			var room = new Room(name, id, socket.id, user.local.size);
 			rooms[id] = room;
 			socket.emit("sendRoomID", {id: id,
 									   active: true}
@@ -333,14 +328,16 @@ io.sockets.on("connection", function (socket) {
 			room.setRandPic();
 			socket.emit("update", "Welcome to " + room.name + ".");
 			chatHistory[socket.room] = [];
+		console.log("socket room: " + socket.room);
 		} else {
 			socket.emit("update", "You have already created a room.");
 		}
 	});
 
-	socket.on("joinRoom", function(id) {
+	socket.on("joinRoom", function(data) {
+		console.log(data.id);
 		if (typeof people[socket.id] !== "undefined") {
-			var room = rooms[id];
+			var room = rooms[data.id];
 			if (socket.id === room.owner) {
 				socket.emit("update", "You are the owner of this room and you have already been joined.");
 			} else {
@@ -352,11 +349,12 @@ io.sockets.on("connection", function (socket) {
 				    	} else {
 						socket.emit("hideCreateRoomButton");
 						socket.emit("showLeaveButton"); 
-						playerSetup(room, socket.id, id, 'O');
+						playerSetup(room, socket.id, data.id, 'O', null);
 						io.sockets.in(socket.room).emit("update", people[socket.id].name + " has connected to " + room.name + " room.");
 						socket.emit("update", "Welcome to " + room.name + ".");
-						socket.emit("sendRoomID", {id: id});
+						socket.emit("sendRoomID", {id: data.id});
 						io.sockets.in(socket.room).emit("showStartButton");
+		console.log("socket room: " + socket.room);
 						var keys = _.keys(chatHistory);
 						if (_.contains(keys, socket.room)) {
 							socket.emit("history", chatHistory[socket.room]);
@@ -500,7 +498,7 @@ io.sockets.on("connection", function (socket) {
 	// load up the user model
 	var User = require('./app/models/user');// get the user
 	// get a user with ID of 1
-	User.findById(userId, function(err, user) {
+	User.findById(user._id, function(err, user) {
 	  if (err) throw err;
 	
 	  // change the users location

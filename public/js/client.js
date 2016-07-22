@@ -79,6 +79,11 @@ $(document).ready(function() {
   $("#checkAnswer").hide();
   $("#leave").hide();
   $("#start_game_button").hide();
+    var device = "desktop";
+    if (navigator.userAgent.match(/Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile/i)) {
+      device = "mobile";
+    }
+    socket.emit("sendDevice", device);
   
 
   $("form").submit(function(event) {
@@ -180,76 +185,9 @@ $(document).ready(function() {
     console.log(data);
   });
 */ 
-  var boardSize = 0;
-  $('#roomModal').on('show.bs.modal', function (e) {
-    boardSize = parseInt(e.relatedTarget.dataset.size);
-  });
 
-  $("#createRoomBtn").click(function() {
-    var userName = $("#createNickName").val(),
-        roomName = $("#createRoomName").val(),
-        device = "desktop",
-        roomExists = userExists = false;
-    if (navigator.userAgent.match(/Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile/i)) {
-      device = "mobile";
-    }
-    socket.emit("checkNames", roomName, userName, function(data) {
-          roomExists = data.roomExists,
-          userExists = data.userExists;
-       if (!roomExists & !userExists & roomName.length > 0 & userName.length > 2) {
-          socket.emit("joinserver", userName, device);
-          socket.emit("createRoom", roomName, boardSize);
-          $("#roomModal").modal('hide');
-          $("#msg").focus();
-        }else{
-            $("#errors").empty();
-            $("#errors").show();
-            if (roomExists) {
-              $("#errors").append("Room <i>" + roomName + "</i> already exists");
-            }
-            if (userExists) {
-              $("#errors").append("User <i>" + userName + "</i> already exists!! Try " +data.proposedName);
-            }
-            if (roomName.length < 1) {
-              $("#errors").append("Enter room name");
-            }
-            if (userName.length < 3) {
-              $("#errors").append("Your name must be at least 3 characters");
-            }
-        }
-    });
-  });
-  
-  var userModalID = 0;
-  $('#userModal').on('show.bs.modal', function (e) {
-    userModalID = e.relatedTarget.id;
-  });
-  
-  $("#joinRoomBtn").click(function() {
-    var userName = $("#createNick").val(),
-        device = "desktop",
-        userExists = false;
-    if (navigator.userAgent.match(/Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile/i)) {
-      device = "mobile";
-    }
-    socket.emit("checkNames", null, userName, function(data) {
-      userExists = data.userExists;
-       if (!userExists & userName.length > 2) {
-          socket.emit("joinserver", userName, device);
-          socket.emit("joinRoom", userModalID);
-          $("#userModal").modal('hide');
-          $("#msg").focus();
-        }else{
-            $("#errorsUserName").empty();
-            $("#errorsUserName").show();
-            if (userExists) {
-              $("#errorsUserName").append("User <i>" + userName + "</i> already exists!! Try " +data.proposedName);
-            }
-            if (userName.length < 3) {
-              $("#errorsUserName").append("Your name must be at least 3 characters");
-            }
-        }
-    });
+  $("#createRoom").click(function() {
+    socket.emit("createRoom");
   });
   
   $("#checkAnswerBtn").click(function() {
@@ -523,6 +461,10 @@ $('body').on('click', '#rooms li', function(){
       socket.emit('sendRoomSize', $(this).attr("id"));
 });
 
+$('body').on('click', '#listOfRooms li', function(){
+    socket.emit("joinRoom", {id : $(this).attr("id")});
+});
+
   socket.on("roomList", function(data) {
     $("#rooms").text("");
     $("#listOfRooms").text("");
@@ -533,7 +475,7 @@ $('body').on('click', '#rooms li', function(){
     if (!jQuery.isEmptyObject(data.rooms)) { 
       $.each(data.rooms, function(id, room) {
         if (room.s === parseInt(data.s)) {
-          var html = "<button id="+id+" data-roomName="+room.name+" class='btn btn-default btn-xs' data-toggle='modal' data-target='#userModal' >Join</button>" + " " + "<button id="+id+" class='removeRoomBtn btn btn-default btn-xs'>Remove</button>";
+          var html = "<button id="+id+" data-roomName="+room.name+" class='btn btn-default btn-xs' >Join</button>" + " " + "<button id="+id+" class='removeRoomBtn btn btn-default btn-xs'>Remove</button>";
           $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.s + "</span> " + html + "</li>");
         } else {
       $("#listOfRooms").append("<li class=\"list-group-item\">There are other room sizes available!</li>");
