@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <% include ../partials/head %>
+    </head>
+    <body class="">
+        <div id="wrapper">
+            <div class="container">
+                <div id="main-screen" class="row-fluid">
+                    <%- include(mainScreen) %>
+                    <% include ../partials/clearfixAllDevices %>
+                </div>
+            </div>
+            <% include ../partials/template %>
+            <% include ../partials/modals %>
+            <% include ../partials/foot %>
+        </div>
+        <div id="warning-message">
+            <h2>please rotate your device to portrait mode</h2>
+            <img src="../images/Orientation_Icon_128x128.png" alt="Rotate Device" style="width:128px;height:128px;">
+        </div>
+    </body>
+</html>
