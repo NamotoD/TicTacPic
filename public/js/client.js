@@ -463,6 +463,7 @@ $('body').on('click', '#rooms li', function(){
 
 $('body').on('click', '#listOfRooms li', function(){
     socket.emit("joinRoom", {id : $(this).attr("id")});
+    //window.location.href = "/room";
 });
 
   socket.on("roomList", function(data) {
@@ -511,8 +512,8 @@ $('body').on('click', '#listOfRooms li', function(){
 
   socket.on("endGame", function(data, msg){
     $("#msgs").append("<li><strong><span class='text-warning'>" + msg + "</span></strong></li>");
-    $("#msg").attr("disabled", "disabled");
-    $("#send").attr("disabled", "disabled");
+    //$("#msg").attr("disabled", "disabled");
+    //$("#send").attr("disabled", "disabled");
     $("#checkAnswer").hide();
     $("#board").addClass("not-active");
   });

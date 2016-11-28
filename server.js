@@ -74,8 +74,8 @@ app.get('/lobby', function(req, res) {
   	res.render('pages/lobby', {
 	  	mainScreen:"../partials/gameScreen",
 	  	active:"not-active",
-	  	rows:12,
-	  	boardSize: "large"
+	  	rows:4,
+	  	boardSize: "small"
   	});
 });
 
@@ -113,7 +113,7 @@ io.set('authorization', passportSocketIo.authorize({
   cookieParser:cookieParser,
   key:         'express.sid',       // the name of the cookie where express/connect stores its session_id 
   secret:      'keyboard cat',    // the session_secret to parse the cookie 
-  store: new sessionStore({ mongooseConnection: mongoose.connection }),        // we NEED to use a sessionstore. no memorystore please 
+  store:	   new sessionStore({ mongooseConnection: mongoose.connection }),        // we NEED to use a sessionstore. no memorystore please 
   success:     onAuthorizeSuccess,  // *optional* callback on success - read more below 
   fail:        onAuthorizeFail,     // *optional* callback on fail/error - read more below 
 }));
@@ -193,10 +193,7 @@ function purge(s, action) {
 				delete rooms[people[s.id].owns]; //delete the room
 				delete people[s.id]; //delete user from people collection
 				delete chatHistory[room.name]; //delete the chat history
-				sizePeople = _.size(people);
-				sizeRooms = getSizeRooms(rooms);
-				io.sockets.emit("update-people", {people: people, count: sizePeople});
-				io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: s.handshake.user.local.size});
+				lobbyUpdate (true, true, s);
 				var o = _.findWhere(sockets, {'id': s.id});
 				sockets = _.without(sockets, o);
 			} else if (action === "removeRoom") { //room owner removes room
@@ -218,10 +215,7 @@ function purge(s, action) {
 				people[s.id].owns = null;
 				room.people = _.without(room.people, s.id); //remove people from the room:people{}collection
 				delete chatHistory[room.name]; //delete the chat history
-				sizePeople = _.size(people);
-				sizeRooms = getSizeRooms(rooms);
-				io.sockets.emit("update-people", {people: people, count: sizePeople});
-				io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: s.handshake.user.local.size});
+				lobbyUpdate (true, true, s);
 			} else if (action === "leaveRoom") { //room owner leaves room
 				io.sockets.in(s.room).emit("update", "The owner (" +people[s.id].name + ") has left the room. The room is removed and you have been disconnected from it as well.");
 				io.sockets.in(s.room).emit("somePlayerLeftRoom");
@@ -242,8 +236,7 @@ function purge(s, action) {
 				people[s.id].owns = null;
 				room.people = _.without(room.people, s.id); //remove people from the room:people{}collection
 				delete chatHistory[room.name]; //delete the chat history
-				sizeRooms = getSizeRooms(rooms);
-				io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: s.handshake.user.local.size});
+				lobbyUpdate (false, true, s);
 			}
 		} else {//user in room but does not own room
 			if (action === "disconnect") {
@@ -254,8 +247,7 @@ function purge(s, action) {
 					s.leave(room.name);
 				}
 				delete people[s.id];
-				sizePeople = _.size(people);
-				io.sockets.emit("update-people", {people: people, count: sizePeople});
+				lobbyUpdate (true, false, s);
 				var o = _.findWhere(sockets, {'id': s.id});
 				sockets = _.without(sockets, o);
 			} else if (action === "removeRoom") {
@@ -276,8 +268,7 @@ function purge(s, action) {
 		if (action === "disconnect") {
 			io.sockets.emit("update", people[s.id].name + " has disconnected from the server.");
 			delete people[s.id];
-			sizePeople = _.size(people);
-			io.sockets.emit("update-people", {people: people, count: sizePeople});
+			lobbyUpdate (true, false, s);
 			var o = _.findWhere(sockets, {'id': s.id});
 			sockets = _.without(sockets, o);
 		}		
@@ -288,23 +279,37 @@ function getSizeRooms(rooms) {
 	    if (num === 4)return 'small';
 	    else if (num === 8)return 'medium';
 	    else return 'large';
-	});return sizeRooms;
+	});
+	return sizeRooms;
+}
+
+function lobbyUpdate(ppl, rms, sckt) {
+	var sizePeople = _.size(people),
+		sizeRooms = getSizeRooms(rooms);
+	if (ppl & rms) {
+		io.sockets.emit("update-people", {people: people, count: sizePeople});
+		io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: sckt.handshake.user.local.size});
+	} else if (ppl) {
+		io.sockets.emit("update-people", {people: people, count: sizePeople});
+	} else if (rms) {
+		io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: sckt.handshake.user.local.size});
+	} else {
+	console.log("check 'lobbyUpdate' function");
+	}
 }
 
 io.sockets.on("connection", function (socket) {
-	user = socket.handshake.user;
+	user = socket.handshake.user; // get user info from passport
 	console.log(socket.handshake.user.local.size);
-		var ownerRoomID = inRoomID = myPlayerTile = null;
+	var ownerRoomID = inRoomID = myPlayerTile = null;
 	socket.on("sendDevice", function(device) {
-			people[socket.id] = {"name" : user.local.userName, "owns" : ownerRoomID, "inroom": inRoomID, "device": device, "tile": myPlayerTile};
-			sizePeople = _.size(people);
-			sizeRooms = getSizeRooms(rooms);
-			io.sockets.emit("update-people", {people: people, count: sizePeople});
-			io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: socket.handshake.user.local.size});});
-			socket.emit("update", "You have connected to the server.");
-			io.sockets.emit("update", user.local.userName + " is online.");
-			socket.emit("joined"); //extra emit for GeoLocation
-			sockets.push(socket);
+		people[socket.id] = {"name" : user.local.userName, "owns" : ownerRoomID, "inroom": inRoomID, "device": device, "tile": myPlayerTile};
+		lobbyUpdate (true, true, socket);
+	});
+	socket.emit("update", "You have connected to the server.");
+	io.sockets.emit("update", user.local.userName + " is online.");
+	socket.emit("joined"); //extra emit for GeoLocation
+	sockets.push(socket);
 
 	//Room functions
 	socket.on("createRoom", function() {
@@ -320,8 +325,7 @@ io.sockets.on("connection", function (socket) {
 			socket.emit("sendRoomID", {id: id,
 									   active: true}
 						);
-			sizeRooms = getSizeRooms(rooms);
-			io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: socket.handshake.user.local.size});
+			lobbyUpdate (false, true, socket);
 			//add room to socket, and auto join the creator of the room
 			people[socket.id].owns = id;
 			playerSetup(room, socket.id, id, 'Z', name);
@@ -394,7 +398,7 @@ io.sockets.on("connection", function (socket) {
 	socket.on("countryUpdate", function(data) { //we know which country the user is from
 		country = data.country.toLowerCase();
 		people[socket.id].country = country;
-		io.sockets.emit("update-people", {people: people, count: sizePeople});
+		lobbyUpdate (true, false, socket);
 	});
 
 	socket.on("typing", function(data) {
@@ -513,8 +517,7 @@ io.sockets.on("connection", function (socket) {
 	
 	});
 
-	sizeRooms = getSizeRooms(rooms);
-	io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: roomSize});
+		lobbyUpdate (false, true, socket);
 	});
 	
 	socket.on("adjustScore", function(data) {
@@ -570,7 +573,7 @@ io.sockets.on("connection", function (socket) {
 	    var peoples = room.getPeople();
   		var playersWithValidMoves = peoples.length;
 		var highestScore = 0;
-  		var winnersId = '';
+  		var winnersId = people[peoples[0]].id;
 		for(var i = 0; i < peoples.length; i++) {
 		  data.myPlayerTile = people[peoples[i]].tile;   
 		  room.checkValidMoves(data);
