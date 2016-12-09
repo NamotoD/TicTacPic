@@ -60,6 +60,33 @@ module.exports = function(app, passport) {
         req.logout();
         res.redirect('/');
     });
+    
+    app.get('/room', function(req, res) {
+    	// load up the user model
+    	var User            = require('./models/user');// get the user
+    	User.findById(req.user._id, function(err, user) {
+    	    if (err) throw err;
+    	
+    	    // show the one user
+    	    console.log(user);
+        	var size  = parseInt(user.local.size),
+        		board ="";
+        	if ( size === 4){
+        		board = "small";
+        	} else if (size === 6){
+        		board = "medium";
+        	} else {
+        		board = "large";
+        	}
+        	
+          	res.render('pages/index', {
+        	  	mainScreen:"../partials/gameScreen",
+        	  	active:"not-active",
+        	  	rows:size,
+        	  	boardSize: board
+          	});
+    	});
+    });
 };
 
 // route middleware to make sure a user is logged in

@@ -70,42 +70,6 @@ server.listen(app.get('port'),function(){
   console.log('Express server listening on port ' + app.get('port'));
 });
 
-app.get('/lobby', function(req, res) {
-  	res.render('pages/lobby', {
-	  	mainScreen:"../partials/gameScreen",
-	  	active:"not-active",
-	  	rows:12,
-	  	boardSize: "large"
-  	});
-});
-
-app.get('/room', function(req, res) {
-	// load up the user model
-	var User            = require('./app/models/user');// get the user
-	User.findById(req.user._id, function(err, user) {
-	  if (err) throw err;
-	
-	  // show the one user
-	  console.log(user);
-	var size  = parseInt(user.local.size),
-		board ="";
-	if ( size === 4){
-		board = "small";
-	} else if (size === 6){
-		board = "medium";
-	} else {
-		board = "large";
-	}
-	
-  	res.render('pages/index', {
-	  	mainScreen:"../partials/gameScreen",
-	  	active:"not-active",
-	  	rows:size,
-	  	boardSize: board
-  	});
-	});
-});
-
 io.set("log level", 1);
 // With Socket.io < 1.0 
 io.set('authorization', passportSocketIo.authorize({
@@ -139,14 +103,8 @@ var rooms = {};
 var sockets = [];
 var chatHistory = {};
 
-function purge(s, action) {/*
-	// load up the user model
-	var size = '';
-	var User            = require('./app/models/user');// get the user
-	User.findById(people[s.id].databaseID, function(err, user) {
-	  if (err) throw err;
-	size  = parseInt(user.local.size)
-	});*/
+function purge(s, action) {
+			var size  = '';
 	/*
 	The action will determine how we deal with the room/user removal.
 	These are the following scenarios:
@@ -197,10 +155,9 @@ function purge(s, action) {/*
 				}
 				room.people = _.without(room.people, s.id); //remove people from the room:people{}collection
 				delete rooms[people[s.id].owns]; //delete the room
+				updateAfterOwnerDisrupt(s, size);
 				delete people[s.id]; //delete user from people collection
 				delete chatHistory[room.name]; //delete the chat history
-				lobbyUpdate (true, true, size, s);
-				s.emit("updateActive", {s: size});
 				var o = _.findWhere(sockets, {'id': s.id});
 				sockets = _.without(sockets, o);
 			} else if (action === "removeRoom") { //room owner removes room
@@ -221,9 +178,8 @@ function purge(s, action) {/*
 				delete rooms[people[s.id].owns];
 				people[s.id].owns = null;
 				room.people = _.without(room.people, s.id); //remove people from the room:people{}collection
-				delete chatHistory[room.name]; //delete the chat history
-				lobbyUpdate (true, true, size, s);
-				s.emit("updateActive", {s: size});
+				delete chatHistory[room.name]; //delete the chat history// sending to all clients except sender
+				updateAfterOwnerDisrupt(s, size);
 			} else if (action === "leaveRoom") { //room owner leaves room
 				io.sockets.in(s.room).emit("update", "The owner (" +people[s.id].name + ") has left the room. The room is removed and you have been disconnected from it as well.");
 				socketids = [];
@@ -243,29 +199,7 @@ function purge(s, action) {/*
 				people[s.id].owns = null;
 				room.people = _.without(room.people, s.id); //remove people from the room:people{}collection
 				delete chatHistory[room.name]; //delete the chat history// sending to all clients except sender
-								
-				// load up the user model
-				var size  = '',
-				index = 0,
-				User  = require('./app/models/user');// get the user
-				User.findById(people[s.id].databaseID, function(err, user) {
-					if (err) throw err;
-						console.log(user); // show the one user
-				  
-					size  = parseInt(user.local.size);
-					
-					if (size === 4)     	{
-						console.log('size is 4: ' + size);
-				    	index = 2;      	} 
-					else if (size === 6)	{
-						console.log('size is 6: ' + size);
-				    	index = 1;          }
-					else                    {
-						console.log('size is 12: ' + size);
-				    		index = 0;      }
-					s.broadcast.emit("updateOwnerLeaveRoom", index);
-					s.emit("updateActive", {s: size});
-				});
+				updateAfterOwnerDisrupt(s, size);
 			}
 		} else {//user in room but does not own room
 			if (action === "disconnect") {
@@ -278,7 +212,7 @@ function purge(s, action) {/*
 				delete people[s.id];
 				lobbyUpdate (true, false, size, s);
 				s.emit("updateActive", {s: size});
-				var o = _.findWhere(sockets, {'id': s.id});
+				o = _.findWhere(sockets, {'id': s.id});
 				sockets = _.without(sockets, o);
 			} else if (action === "removeRoom") {
 				s.emit("update", "Only the owner can remove a room.");
@@ -330,6 +264,35 @@ function lobbyUpdate(ppl, rms, size, sckt) {
 	}
 }
 
+function updateAfterOwnerDisrupt(s, size){								
+			// load up the user model
+			var index = 0,
+			User  = require('./app/models/user');// get the user
+			User.findById(people[s.id].databaseID, function(err, user) {
+				if (err) throw err;
+					console.log(user); // show the one user
+			  
+				size  = parseInt(user.local.size);
+				index = getBadgeIndex(index, size);
+				s.broadcast.emit("updateOwnerLeaveRoom", index);
+				s.emit("updateActive", {s: size});
+			});
+}
+
+function getBadgeIndex(index, size){
+	
+	if (size === 4)     	{
+		console.log('size is 4: ' + size);
+    	index = 2;      	} 
+	else if (size === 6)	{
+		console.log('size is 6: ' + size);
+    	index = 1;          }
+	else                    {
+		console.log('size is 12: ' + size);
+    	index = 0;      }
+    return index;
+}
+
 io.sockets.on("connection", function (socket) {
 	user = socket.handshake.user; // get user info from passport
 	console.log("User ID: " + user._id);
@@ -379,32 +342,9 @@ io.sockets.on("connection", function (socket) {
 				room.setRandPic();
 				socket.emit("update", "Welcome to " + room.name + ".");
 				chatHistory[socket.room] = [];
-				
-				if (size === 4)     	{
-					console.log('size is 4: ' + size);
-			    	index = 2;      	} 
-				else if (size === 6)	{
-					console.log('size is 6: ' + size);
-			    	index = 1;          }
-				else                    {
-					console.log('size is 12: ' + size);
-			    		index = 0;      }
+				index = getBadgeIndex(index, size);
 					
-				var sizeRooms = getSizeRooms(rooms);			
-				    console.log('Large rooms: ' + sizeRooms.large);			
-				    console.log('Medium rooms: ' + sizeRooms.medium);			
-				    console.log('Small rooms: ' + sizeRooms.small);						
-					/*for (var id in people) { // update only players who are not in a room
-					  if (people.hasOwnProperty(id)) {
-					  	if (people[id].inroom === null)	{
-							var UserToBeUpdatedId = id;
-							//io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: size});
-							io.sockets.socket(UserToBeUpdatedId).emit("updateCreateRoom", {rooms: rooms, count: sizeRooms, s: size, index: index});
-					    	console.log(id + " -> " + people[id].inroom);
-					  	}
-					  }
-					}*/
-				//io.sockets.emit("roomList", {rooms: rooms, count: sizeRooms, s: size});
+				var sizeRooms = getSizeRooms(rooms);
 				io.sockets.emit("updateCreateRoom", {rooms: rooms, count: sizeRooms, s: size, index: index});
 				socket.emit("disableRoomSizeButtons");
 				console.log("socket room: " + socket.room);
@@ -713,16 +653,5 @@ io.sockets.on("connection", function (socket) {
 	    io.sockets.in(socket.room).emit('sendScoresToClients', data);
 	    socket.emit("setTransparent", data);
 	    socket.broadcast.to(socket.room).emit("setUncovered", data);
-	};
-	
-	var getSize = function (Id){
-		// load up the user model
-		var User = require('./app/models/user');// get the user
-		User.findById(Id, function(err, user) {
-		  if (err) throw err;
-			  // show the one user
-		  console.log(user);
-		  return  parseInt(user.local.size);
-	  	});
 	};
 });
