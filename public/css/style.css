@@ -71,7 +71,7 @@ body
     padding-bottom: 8.33334%;
     float: left;
     margin: 0px;
-    background-image:url('../images/myTile3.jpg');
+    background-image:url('../images/myTile4.png');
     background-size: 100%;
 }
 
@@ -82,7 +82,7 @@ body
     padding-bottom: 16.6667%;
     float: left;
     margin: 0px;
-    background-image:url('../images/myTile3.jpg');
+    background-image:url('../images/myTile4.png');
     background-size: 100%;
 }
 
@@ -93,7 +93,7 @@ body
     padding-bottom: 25%;
     float: left;
     margin: 0px;
-    background-image:url('../images/myTile3.jpg');
+    background-image:url('../images/myTile4.png');
     background-size: 100%;
 }
 
@@ -102,19 +102,54 @@ body
     background-position: 0 0;
 }
 
-#board .O
+#board .violet
 {
-    background-position: 0 33.33%;
+    background-position: 0 18.18%;
 }
 
-#board .Z
+#board .violetUncovered
 {
-    background-position: 0 66.67%;
+    background-position: 0 27.27%;
 }
 
-#board .uncovered
+#board .red
 {
-    background-position: 0 100%;
+    background-position: 0 36.36%;
+}
+
+#board .redUncovered
+{
+    background-position: 0 45.45%;
+}
+
+#board .yellow
+{
+    background-position: 0 54.54%;
+}
+
+#board .yellowUncovered
+{
+    background-position: 0 63.63%;
+}
+
+#board .green
+{
+    background-position: 0 72.72%;
+}
+
+#board .greenUncovered
+{
+    background-position: 0 81.81%;
+}
+
+#board .blue
+{
+    background-position: 0 90.9%;
+}
+
+#board .blueUncovered
+{
+    background-position: 0 99.99%;
 }
 
 #board .transparent

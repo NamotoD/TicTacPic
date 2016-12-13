@@ -160,6 +160,7 @@ $(document).ready(function() {
   
   
 	socket.on("toggleActive", function() {
+    //alert("toggleActive works!");
 	  $("#board").toggleClass("not-active");
 	});  
 	
@@ -204,15 +205,15 @@ $(document).ready(function() {
     count = Number($badge.eq(data.index).text());
     $badge.eq(Number(data.index)).text(count + 1);
     if (!jQuery.isEmptyObject(data.rooms)) { 
-      var dispalyNoRooms = 0;
+      var displayNoRooms = 0;
       $.each(data.rooms, function(id, room) {
         if (room.s === parseInt(data.s)) {
           var html = "<button id="+id+" data-roomName="+room.name+" class='btn btn-default btn-xs' >Join</button>" + " " + "<button id="+id+" class='removeRoomBtn btn btn-default btn-xs'>Remove</button>";
           $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.s + "</span> " + html + "</li>");
         } else {
-          if (dispalyNoRooms < 1) {
+          if (displayNoRooms < 1) {
               $("#listOfRooms").append("<li class=\"list-group-item\">There are other room sizes available!</li>");
-              dispalyNoRooms++; 
+              displayNoRooms++; 
           }     
         }
       });
@@ -293,10 +294,16 @@ $(document).ready(function() {
       alert("Choose another button!");
     }
   });
+/*
   
   socket.on("sendScoresToClients", function(data) {
     $(".player-score:eq( 0 )").find('.badge').text( data.myCreatorScore );
     $(".player-score:eq( 1 )").find('.badge').text( data.myJoinerScore );
+    $("#" + data.clickedButtonId).parent('div').removeClass("Default").addClass(data.myPlayerTile);
+  }); 
+*/   
+  socket.on("sendScoresToClients", function(data) {
+    $(".player-score:eq(" + data.index + ")").find('.badge').text( data.score );
     $("#" + data.clickedButtonId).parent('div').removeClass("Default").addClass(data.myPlayerTile);
   });
   
@@ -311,7 +318,7 @@ $(document).ready(function() {
   socket.on("setUncovered", function(data) {
     $.each(data.winningSets, function (i, set) {
       $.each(set, function (j, field) {
-        $("#" + this).parent('div').addClass('uncovered');
+        $("#" + this).parent('div').addClass(data.myPlayerTile + 'Uncovered');
       });
     });
   });
@@ -427,8 +434,9 @@ $(document).ready(function() {
       gameArea.removeChild(gameArea.firstChild);
     }
     gameArea.appendChild(boardClone);
-    $(".player-score:eq( 0 )").find('.glyphicon').append( data.creatorName );
-    $(".player-score:eq( 1 )").find('.glyphicon').append( data.joinerName );
+		for (var i = 0; i < data.playersInRoom.length; i++) {
+      $(".player-score:eq(" + i + ")").find('.glyphicon').append(data.playersInRoom[i].name);
+		}
     if(active)  $("#board").removeClass("not-active").addClass("active");
     $("#board").css('background-position', data.randPic+ '% 0');
     
