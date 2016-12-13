@@ -224,6 +224,8 @@ function purge(s, action) {
 					io.sockets.emit("update", people[s.id].name + " has left the room.");
 					io.sockets.in(s.room).emit("disableBoard");
 					s.leave(room.name);
+					lobbyUpdate (true, false, size, s);
+					s.emit("updateActive", {s: size});
 				}
 			}
 		}	
@@ -338,12 +340,15 @@ io.sockets.on("connection", function (socket) {
 				var room = new Room(name, id, socket.id, size);
 				rooms[id] = room;
 				people[socket.id].owns = id;
-				playerSetup(room, socket.id, id, 'Z', name);
+				room.sortColors();
+				var tile = room.getRandomTile();
+					console.log(tile); // show the one user
+				playerSetup(room, socket.id, id, tile, name);
 				room.setRandPic();
 				socket.emit("update", "Welcome to " + room.name + ".");
 				chatHistory[socket.room] = [];
+				
 				index = getBadgeIndex(index, size);
-					
 				var sizeRooms = getSizeRooms(rooms);
 				io.sockets.emit("updateCreateRoom", {rooms: rooms, count: sizeRooms, s: size, index: index});
 				socket.emit("disableRoomSizeButtons");
@@ -356,46 +361,56 @@ io.sockets.on("connection", function (socket) {
 
 	socket.on("joinRoom", function(data) {
 		console.log(data.id);
-		if (typeof people[socket.id] !== "undefined") {
-			var room = rooms[data.id];
-			if (socket.id === room.owner) {
-				socket.emit("update", "You are the owner of this room and you have already been joined.");
-			} else {
-				if (_.contains((room.people), socket.id)) {
-					socket.emit("update", "You have already joined this room.");
+		var room = rooms[data.id];
+		if (room.isAvailable()) {
+			if (typeof people[socket.id] !== "undefined") {
+				if (socket.id === room.owner) {
+					socket.emit("update", "You are the owner of this room and you have already been joined.");
 				} else {
-					if (people[socket.id].inroom !== null) {
-				    		socket.emit("update", "You are already in a room ("+rooms[people[socket.id].inroom].name+"), please leave it first to join another room.");
-				    	} else {
-						socket.emit("hideCreateRoomButton");
-						socket.emit("showLeaveButton");
-						socket.emit("disableRoomSizeButtons"); 
-						playerSetup(room, socket.id, data.id, 'O', null);
-						io.sockets.in(socket.room).emit("update", people[socket.id].name + " has connected to " + room.name + " room.");
-						socket.emit("update", "Welcome to " + room.name + ".");
-						socket.emit("sendRoomID", {id: data.id});
-						io.sockets.in(socket.room).emit("showStartButton");
-						console.log("socket room: " + socket.room);
-						var keys = _.keys(chatHistory);
-						if (_.contains(keys, socket.room)) {
-							socket.emit("history", chatHistory[socket.room]);
+					if (_.contains((room.people), socket.id)) {
+						socket.emit("update", "You have already joined this room.");
+					} else {
+						if (people[socket.id].inroom !== null) {
+					    		socket.emit("update", "You are already in a room ("+rooms[people[socket.id].inroom].name+"), please leave it first to join another room.");
+					    	} else {
+							socket.emit("hideCreateRoomButton");
+							socket.emit("showLeaveButton");
+							socket.emit("disableRoomSizeButtons");
+							var tile = room.getRandomTile(); 
+					console.log(tile); // show the one user
+							playerSetup(room, socket.id, data.id, tile, null);
+							room.checkAvailability();
+							console.log(room.getPeople().length);
+							io.sockets.in(socket.room).emit("update", people[socket.id].name + " has connected to " + room.name + " room.");
+							socket.emit("update", "Welcome to " + room.name + ".");
+							socket.emit("sendRoomID", {id: data.id});
+							io.sockets.in(socket.room).emit("showStartButton");
+							console.log("socket room: " + socket.room);
+							var keys = _.keys(chatHistory);
+							if (_.contains(keys, socket.room)) {
+								socket.emit("history", chatHistory[socket.room]);
+							}
 						}
 					}
 				}
+			} else {
+				socket.emit("update", "Please enter a valid name first.");
 			}
 		} else {
-			socket.emit("update", "Please enter a valid name first.");
+			socket.emit("update", "This room is already full.");
 		}
 	});
 
 	socket.on("startGame", function(id) {
 		var room = getRoom();
 		room.setUpPlayingBoard();
-		people[room.people[0]].score = 0;
-		people[room.people[1]].score = 0;
-		var data= {
-			creatorName:	people[room.people[0]].name, 
-			joinerName:		people[room.people[1]].name,
+		var playersInRoom = [];
+		for (var i = 0; i < room.people.length; i++) {
+			people[room.people[i]].score = 0; //set to 0 on restart
+			playersInRoom.push(people[room.people[i]]); //pass object with players in a room
+		}
+		var data = {
+			playersInRoom:	playersInRoom,
 			randPic:		room.getRandPic()
 		};
 		io.sockets.in(socket.room).emit("showBoard", data);
@@ -550,6 +565,7 @@ io.sockets.on("connection", function (socket) {
 				}
 			});
 	});
+	/*
 	
 	socket.on("adjustScore", function(data) {
 		var room = getRoom();
@@ -559,6 +575,19 @@ io.sockets.on("connection", function (socket) {
 		}
 		data.myCreatorScore = people[room.people[0]].score;
 		data.myJoinerScore = people[room.people[1]].score;
+	    io.sockets.in(socket.room).emit('sendScoresToClients', data);
+	});	*/
+	socket.on("adjustScore", function(data) {
+		var room = getRoom();
+		people[socket.id].score += data.score;
+		if (data.decreaseAttempts) {
+			people[socket.id].attempts -= 1;
+		}
+		var index = room.people.indexOf(socket.id);
+					console.log("Player's index is: " + index ); 
+		data.index = index;
+		data.score = people[socket.id].score;
+					console.log("Player's score is: " + data.score );
 	    io.sockets.in(socket.room).emit('sendScoresToClients', data);
 	});	
 
@@ -573,10 +602,9 @@ io.sockets.on("connection", function (socket) {
 	
 	socket.on("sendClickedButton", function(data) {
 		var room = getRoom();
-		getScores(room, data, people[socket.id]);
-		adjustScreens(data, people[socket.id]);
+		getScores(room, data);
+		adjustScreens(room,data);
 		validateMoves(room, data);
-			
 	});
 	
 	//HELPER FUNCTIONS
@@ -598,6 +626,44 @@ io.sockets.on("connection", function (socket) {
 		room.addPerson(socketId);
 		socket.room = name || room.name;
 		socket.join(socket.room);
+	};
+	
+	var getScores = function (room, data){
+		data.myPlayerTile = people[socket.id].tile;
+		data.score = 0;
+		room.checkMove(data);
+		people[socket.id].score += data.score;
+		if(data.score > 0) {
+			people[socket.id].canAnswer = true;
+		}
+		data.score = people[socket.id].score;
+		var index = room.people.indexOf(socket.id);
+					console.log("Player's index is: " + index ); 
+		data.index = index;
+	};
+	
+	var adjustScreens = function (room,data){
+		var socketID = "";
+		console.log("Player's socket Id: " + socket.id + 
+					"/nLast socket Id: " + room.people[room.people.length - 1]	); 
+		if (socket.id === room.people[room.people.length - 1]) {
+			socketID = room.people[0];
+		} else {
+			socketID = room.people[data.index + 1];
+		}
+		/*var last_element = room.people[room.people.length - 1];
+		socketID = room.people[data.index + 1];
+					console.log("Player's socketID is: " + socketID ); */
+		io.sockets.socket(socketID).emit("toggleActive");
+		if(people[socket.id].canAnswer) {
+			socket.emit("enableCheckAnswerButton");	
+		}
+		if(people[socket.id].attempts<1) {
+			socket.emit("disableCheckAnswerButton");
+		}
+	    io.sockets.in(socket.room).emit('sendScoresToClients', data);
+	    socket.emit("setTransparent", data);
+	    socket.broadcast.to(socket.room).emit("setUncovered", data);
 	};
 	
 	var validateMoves = function (room, data){
@@ -628,30 +694,5 @@ io.sockets.on("connection", function (socket) {
 			io.sockets.in(socket.room).emit('endGame', data, 'Press Start button for a new game!');
 			io.sockets.in(socket.room).emit("showStartButton");
 		}
-	};
-	
-	var getScores = function (room, data, socketId){
-		data.myPlayerTile = socketId.tile;
-		data.score = 0;
-		room.checkMove(data);
-		socketId.score += data.score;
-		if(data.score > 0) {
-			socketId.canAnswer = true;
-		}
-		data.myCreatorScore = people[room.people[0]].score;
-		data.myJoinerScore = people[room.people[1]].score;
-	};
-	
-	var adjustScreens = function (data, socketId){
-		socket.broadcast.to(socket.room).emit("toggleActive");
-		if(socketId.canAnswer) {
-			socket.emit("enableCheckAnswerButton");	
-		}
-		if(socketId.attempts<1) {
-			socket.emit("disableCheckAnswerButton");
-		}
-	    io.sockets.in(socket.room).emit('sendScoresToClients', data);
-	    socket.emit("setTransparent", data);
-	    socket.broadcast.to(socket.room).emit("setUncovered", data);
 	};
 });

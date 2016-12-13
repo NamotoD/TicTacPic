@@ -6,7 +6,8 @@ function Room(name, id, owner, boardSize) {
   this.Board = [];
   this.s = boardSize;
   this.boardRange = boardSize*boardSize;
-  this.peopleLimit = 4;
+  this.colors = ['violet', 'red', 'yellow', 'green', 'blue'];
+  this.peopleLimit = (boardSize === 12) ? 4 : 2;
   this.status = "available";
   this.private = false;
   this.buttonNames = ['b1',      'b2',       'b3',
@@ -22,6 +23,15 @@ function Room(name, id, owner, boardSize) {
   "pelican", "rhyno", "seagull", "seal", "sloth", "squirrel", "swan", "tiger", "turtle", "wolf"];
   this.currentPic = "";
 }
+
+Room.prototype.sortColors = function() {
+  this.colors.sort(function() { return 0.5 - Math.random();});
+	console.log(this.colors);
+};
+
+Room.prototype.getRandomTile = function() {
+  return this.colors.pop();
+};
 
 Room.prototype.setUpPlayingBoard = function() {
 	for(var i = 0; i < this.boardRange; i++){
@@ -82,7 +92,13 @@ Room.prototype.getPeople = function() {
 };
 
 Room.prototype.isAvailable = function() {
-  return this.available === "available";
+  return this.status === "available";
+};
+
+Room.prototype.checkAvailability = function() {
+  if ((this.people.length) >= this.peopleLimit) {
+    this.status = "unavailable";
+  }
 };
 
 Room.prototype.isPrivate = function() {
