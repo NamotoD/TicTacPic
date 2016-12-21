@@ -1,3 +1,4 @@
+process.env.PWD = process.cwd();
 var express = require('express')
 , npid = require("npid")
 , uuid = require('node-uuid')
@@ -48,7 +49,7 @@ app.use(passport.session()); // persistent login sessions
 app.use(flash()); // use connect-flash for flash messages stored in session
 app.use(methodOverride());
 
-app.use(express.static(__dirname + '/public'));
+app.use(express.static(process.env.PWD + '/public'));
 app.use('/components', express.static(__dirname + '/components'));
 app.use('/js', express.static(__dirname + '/js'));
 app.use('/icons', express.static(__dirname + '/icons'));
