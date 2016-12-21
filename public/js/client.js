@@ -510,6 +510,7 @@ $('body').on('click', '#rooms li', function(){
 });
 
 socket.on("reloadPage", function(data) {
+    $("#msgs").append("<li><strong><span class='text-warning'>Changing the room size...</span></strong></li>");
     window.location.href = "/room";
 });
 
