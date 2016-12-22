@@ -131,7 +131,7 @@ chat-area
     outline-color: black;
     outline-style: solid;
 }
-
+/*
 .btn
 {
     background: url('../images/background/brushed_aluminium_button.png') #f2f2f2;
@@ -156,7 +156,7 @@ chat-area
     background-size: 100% 100%;
     border-radius: 24px;
 }
-
+*/
 #warning-message { display: none; }
 @media only screen and (orientation:landscape){
     #wrapper { display:none; }

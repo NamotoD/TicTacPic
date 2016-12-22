@@ -33,7 +33,9 @@
     "socket.io": "^0.9.16",
     "underscore": "^1.5.2"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "grunt": "^1.0.1"
+  },
   "scripts": {
     "postinstall": "./node_modules/bower/bin/bower install"
   },
