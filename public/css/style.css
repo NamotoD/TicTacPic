@@ -131,8 +131,8 @@ chat-area
     outline-color: black;
     outline-style: solid;
 }
-/*
-.btn
+
+.myButton 
 {
     background: url('../images/background/brushed_aluminium_button.png') #f2f2f2;
     background-repeat: no-repeat;
@@ -140,7 +140,7 @@ chat-area
     background-size: 100% 100%;
     border-radius: 24px;
 }
-.btn :hover 
+.myButton  :hover 
 {
     background: url('../images/background/brushed_aluminium_button.png') #e0e0e0;
     background-repeat: no-repeat;
@@ -148,7 +148,7 @@ chat-area
     background-size: 100% 100%;
     border-radius: 24px;
 }
-.btn :active 
+.myButton  :active 
 {
     background: url('../images/background/brushed_aluminium_button.png') #c0c0c0;
     background-repeat: no-repeat;
@@ -156,7 +156,7 @@ chat-area
     background-size: 100% 100%;
     border-radius: 24px;
 }
-*/
+
 #warning-message { display: none; }
 @media only screen and (orientation:landscape){
     #wrapper { display:none; }
