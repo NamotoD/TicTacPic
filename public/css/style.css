@@ -809,7 +809,7 @@ a href
 
 #game-area.after
 {
-    top: 0px;
+    top: 15px;
     height: calc(100vw - 31px + 6vh);
 }
 
@@ -822,8 +822,8 @@ a href
 
 #chat.after
 {
-    height: calc(100vh - (6vh + 100vw + 2px));
-    top: calc(6vh + 100vw - 23px);
+    height: calc(100vh - (6vh + 100vw - 5px));
+    top: calc(100vw - 16px + 6vh);
 }
 
 #chatForm
