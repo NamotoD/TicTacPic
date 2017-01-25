@@ -4,7 +4,7 @@ html, body, #wrapper, .container, #main-screen
 {    
     overflow: hidden;
     height:100vh;
-    max-width: 1500px;
+    width: 100%;
     margin: 0 auto;
     padding:0px; 
 }
@@ -109,7 +109,7 @@ img.bg {
 
 #authWrapper, #loginScreen, #signupScreen
 {
-    background: url("../images/background/wood.png") no-repeat;
+    background: url("../images/background/woodBackground.png") no-repeat;
     background-position: -5px -5px; 
 }
 
