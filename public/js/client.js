@@ -76,6 +76,7 @@ $(document).ready(function() {
   //setup "global" variables first
   var socket = io.connect();
   var myRoomID = active = null;
+  $("#score").hide();
   $("#checkAnswer").hide();
   $("#leave").hide();
   $("#start_game_button").hide();
@@ -427,7 +428,8 @@ $(document).ready(function() {
     $("#start_game_button").hide();
     var boardTemplate = document.getElementById('gameBoard'),
         gameArea = document.getElementById('game-area'),
-        groups = document.getElementById('groups'),
+        lobby = document.getElementById('lobby'),
+        chat = document.getElementById('chat'),
         boardClone = boardTemplate.content.cloneNode(true);
         //clear game-area
     while (gameArea.firstChild) {
@@ -440,9 +442,13 @@ $(document).ready(function() {
     if(active)  $("#board").removeClass("not-active").addClass("active");
     $("#board").css('background-position', data.randPic+ '% 0');
     
-      while (groups.firstChild) {
-      groups.removeChild(groups.firstChild);
-    }
+    /*  while (lobby.firstChild) {
+      lobby.removeChild(lobby.firstChild);
+    }*/
+    $("#lobby").hide();
+    $("#score").show();
+    $("#game-area").removeClass("before").addClass("after");
+    $("#chat").removeClass("before").addClass("after");
   });
   
   socket.on("enableCheckAnswerButton", function() {
@@ -521,9 +527,17 @@ $('body').on('click', '#listOfRooms li', function(){
   socket.on("roomList", function(data) {
     $("#rooms").text("");
     $("#rooms").append(
-              "<li id = \"12\"role=\"presentation\"><a href=\"#\">Large <span class=\"badge\">"+ (typeof data.count.large != 'undefined' ? data.count.large : 0) +"</span></a></li>" +
-              "<li id = \"6\" role=\"presentation\"><a href=\"#\">Medium <span class=\"badge\">"+ (typeof data.count.medium != 'undefined' ? data.count.medium : 0) +"</span></a></li>" +
-              "<li id = \"4\" role=\"presentation\"><a href=\"#\">Small <span class=\"badge\">"+ (typeof data.count.small != 'undefined' ? data.count.small : 0) +"</span></a></li>");
+            "<div class=\"row-fluid no-gutter-at-all\" >" +
+              "<div class=\"col-xs-4 \" >"+
+                  "<li id = \"12\" class=\"list-group-item\" role=\"presentation\"><a href=\"#\">Large <span class=\"badge\">"+ (typeof data.count.large != 'undefined' ? data.count.large : 0) +"</span></a></li>" +
+              "</div>" +
+              "<div class=\"col-xs-4 \" >"+
+                  "<li id = \"6\" class=\"list-group-item\" role=\"presentation\"><a href=\"#\">Medium <span class=\"badge\">"+ (typeof data.count.medium != 'undefined' ? data.count.medium : 0) +"</span></a></li>" +
+              "</div>" +
+              "<div class=\"col-xs-4 \" >"+
+                  "<li id = \"4\" class=\"list-group-item\" role=\"presentation\"><a href=\"#\">Small <span class=\"badge\">"+ (typeof data.count.small != 'undefined' ? data.count.small : 0) +"</span></a></li>" +
+              "</div>" +
+            "</div>");
     if (!jQuery.isEmptyObject(data.rooms)) { 
       var displayNoRooms = 0;
       $.each(data.rooms, function(id, room) {

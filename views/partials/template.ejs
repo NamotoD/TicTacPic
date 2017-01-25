@@ -1,4 +1,16 @@
 <template id="gameBoard">
-    <% include board/scores %>
-    <% include board/justBoard %>
+    <div id = "score" class="row-fluid no-gutter-at-all">
+        <% include board/scores %>   
+    </div>
+    <div id = "board" class="<%=active%> row-fluid no-gutter-at-all">
+        <% for(var i=0; i<(rows); i++) {%>
+            <% include board/justBoard/rowBeg %>
+                <% for(var j=0; j<(rows); j++) {%>
+                    <div class="col-xs-<%=12/(rows)%> col-sm-<%=12/(rows)%> col-md-<%=12/(rows)%> col-lg-<%=12/(rows)%> <%=(boardSize)%> Default col-wrap">
+                        <button type="button" id="<%=(i*(rows))+j%>" class="btn btn-default btn-block col"></button>
+                    </div>
+                <% } %>
+            <% include board/justBoard/rowEnd %>
+        <% } %>
+    </div>  
 </template>
