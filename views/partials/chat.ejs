@@ -1,52 +1,22 @@
-<div id = "chatWrap" class="well simpleFrame">
-    <div id="groups">
-        <div class="row">
-            <ul id="rooms" data-toggle="collapse" data-target="#listOfRooms" class="nav nav-pills" role="tablist">
-            </ul>
-            <div id="listOfRooms" class="collapse"></div>
-        </div>  
-        <div class="row">
-            <ul id="people" class="list-group" data-toggle="collapse" data-target="#listOfPeople"></ul>
-            <div id="listOfPeople" class="collapse"></div>
-        </div>
-    </div>    
-    <div class="row">
-        <div id="conversation">
-            <ul id="msgs" class="list-unstyled"></ul>
-        </div>
+    <div id="conversation" class="row-fluid no-gutter-at-all screen">
+        <ul id="msgs" class="list-unstyled"></ul>
     </div>
-    <div class="row">
-        <form id="chatForm" class="form-inline">
-            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                <div class="row">
-                    <div id = "formChat" class="form-group">
-                        <input type="text" class="form-control input" placeholder="Your message" id="msg">
-                    </div>
-                    <input type="submit" name="send" id="send" value="Send" class="btn btn-success myButton">
-                    <input type="button" name="start_button" id="start_button" value="Record" onclick="startButton(event);" class="btn btn-info myButton">
-                    <a href="#" id="start_game_button" class="btn btn-info myButton" role="button">Start</a>
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-info dropdown-toggle myButton" data-toggle="dropdown">Actions 
-                            <span class="caret"></span>
-                        </button>
-                        <ul class="dropdown-menu" role="menu">
-                            <li>
-                                <a href="#" id="createRoom" name="createRoom">Create room</a>
-                            </li>
-                            <li>
-                                <a href="#" id="checkAnswer" name="checkAnswer" data-toggle="modal" data-target="#checkAnswerModal">Check answer</a>
-                            </li>
-                            <li>
-                                <a href="/room" id="leave" name="leave">Leave current room</a>
-                            </li>
-                            <!--<li><a href="#" name="disconnect" id="disconnect">Disconnect from chat</a></li>-->
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </form>
+    <form id="chatForm" class="form-group row-fluid no-gutter-at-all">
+        <div id = "formChat" class="col-xs-9 col-sm-11 col-md-9 col-lg-10">
+            <input type="text" class="form-control input" placeholder="Your message" id="msg">
+        </div>
+        <div class="col-xs-3 col-sm-1 col-md-3 col-lg-2">
+            <input type="submit" name="send" id="send" value="Send" class="btn btn-success">
+        </div>
+    </form>
+    <div class="row-fluid no-gutter-at-all">
+        <!--<input type="button" name="start_button" id="start_button" value="Record" onclick="startButton(event);" class="btn btn-info">-->
+        <a href="#" id="start_game_button" class="btn btn-info buttons" role="button">Start</a>
+        <a href="#" id="createRoom" class="btn btn-info buttons" name="createRoom">Create room</a>
+        <a href="/room" id="leave" class="btn btn-info buttons" name="leave">Leave room</a>
+        <a href="#" id="checkAnswer" class="btn btn-info buttons" name="checkAnswer" data-toggle="modal" data-target="#checkAnswerModal">Check answer</a>
     </div>
-    <div class="row">
+    <div class="row-fluid no-gutter-at-all">
         <ul class="list-unstyled" id="updates"></ul>
-    </div>                         
-</div> 
+    </div>
+              

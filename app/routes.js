@@ -79,7 +79,7 @@ module.exports = function(app, passport) {
         		board = "large";
         	}
         	
-          	res.render('pages/index', {
+          	res.render('pages/index.ejs', {
         	  	mainScreen:"../partials/gameScreen",
         	  	active:"not-active",
         	  	rows:size,

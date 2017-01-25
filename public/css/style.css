@@ -1,9 +1,76 @@
-html,body 
-{
-    height:100vh;  
-    max-width: 1500px;
+/******** wrappers ************/
+
+html, body, #wrapper, .container, #main-screen
+{    
+    overflow: hidden;
+    height:100vh;
+    width: 100%;
     margin: 0 auto;
-    padding-top: 00px; 
+    padding:0px; 
+}
+
+/******** preloader ************/
+
+.preloader 
+{
+   width:40px;
+   height:40px;
+   display:inline-block;
+   padding:0px;
+   text-align:left;
+   -webkit-animation:preloader 1.4s linear infinite;
+   animation:preloader 1.4s linear infinite;
+   position: absolute;
+   top: 48%;
+   left: 48%;
+}
+
+.preloader span 
+{
+   position:absolute;
+   vertical-align:top;
+   border-radius:100%;
+   background:#000000;
+   display:inline-block;
+   width:8px;
+   height:8px;
+   margin-left:16px;
+   transform-origin:center 20px;
+   -webkit-transform-origin:center 20px;
+}
+
+.preloader span:nth-child(2) {transform: rotate(36deg);-webkit-transform: rotate(36deg); opacity:0.1;}
+.preloader span:nth-child(3) {transform: rotate(72deg);-webkit-transform: rotate(72deg); opacity:0.2;}
+.preloader span:nth-child(4) {transform: rotate(108deg);-webkit-transform: rotate(108deg); opacity:0.3;}
+.preloader span:nth-child(5) {transform: rotate(144deg);-webkit-transform: rotate(144deg); opacity:0.4;}
+.preloader span:nth-child(6) {transform: rotate(180deg);-webkit-transform: rotate(180deg); opacity:0.5;}
+.preloader span:nth-child(7) {transform: rotate(216deg);-webkit-transform: rotate(216deg); opacity:0.6;}
+.preloader span:nth-child(8) {transform: rotate(252deg);-webkit-transform: rotate(252deg); opacity:0.7;}
+.preloader span:nth-child(9) {transform: rotate(288deg);-webkit-transform: rotate(288deg); opacity:0.8;}
+.preloader span:nth-child(10) {transform: rotate(324deg);-webkit-transform: rotate(324deg); opacity:0.9;}
+
+@keyframes preloader 
+{
+   from {transform: rotate(0deg);}
+   to {transform: rotate(360deg);}
+}
+
+@-webkit-keyframes preloader 
+{
+   from {-webkit-transform: rotate(0deg);}
+   to {-webkit-transform: rotate(360deg);}
+}
+
+.spinWrapper
+{
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #999;
+    z-index: 999999;
+    
 }
 
 /*Set up up the Background Image*/		
@@ -28,20 +95,55 @@ img.bg {
 		margin-left: -512px; }
 }
 
-#wrapper 
+#authentication, #loginScreen, #signupScreen
 {
-    height: 95vh;
-    margin: 20px;
+    padding: 0px;
+    height: 100%;
 }
 
-.container
+#authWrapper
+{
+    margin: 0px;
+    height: 100%;
+}
+
+#authWrapper, #loginScreen, #signupScreen
 {
     background: url("../images/background/wood.png") no-repeat;
-        max-width: 100%;
-    height: auto;
+    background-position: -5px -5px; 
+}
+
+.jumbotron, #loginWrap, #signupWrap
+{
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 90%;
+}
+
+.container .jumbotron,
+.container-fluid .jumbotron {
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+h1 {
+   -webkit-text-stroke: 1px black;
+   color: white;
+   text-shadow:
+       3px 3px 0 #000,
+     -1px -1px 0 #000,  
+      1px -1px 0 #000,
+      -1px 1px 0 #000,
+       1px 1px 0 #000;
+}
+
+.container-fluid
+{
+    background: url("../images/background/wood.png") no-repeat;
+    background-position: -5px -5px; 
+    width: 100%;
 	z-index: -1;
-	
-    height: 95vh;
     border: 0;
     padding: 0;
       -webkit-box-shadow:
@@ -64,10 +166,10 @@ img.bg {
                 
 }
 
+/******** main content ************/
+
 #main-screen
 {
-    height:95vh;
-    padding: 5px;
       -webkit-box-shadow:
     		inset 0 0 50px #666,
                 inset 0 0 50px #000,
@@ -84,21 +186,170 @@ img.bg {
                 inset 0 0 50px #000;
 }
 
-.simpleFrame
+.main-screenFrame
 {
-    border: 12px solid transparent;
-    margin: 5px;
+    border-style: solid;
+    border-width: 13px;
+    -moz-border-image: url("../images/background/BrushedAluminiumChat.png") 13 stretch; /* Safari 3.1-5 */
+    -webkit-border-image: url(../images/background/BrushedAluminiumChat.png) 13 stretch; /* Safari 3.1-5 */
+    -o-border-image: url("../images/background/BrushedAluminiumChat.png") 13 stretch; /* Opera 11-12.1 */
+    border-image: url("../images/background/BrushedAluminiumChat.png") 13 stretch;
+    background: url("../images/084.png") no-repeat;
+    height: auto;
+}
+
+/************************* LOBBY ****************************/
+
+#lobby
+{
+    position: absolute;
+    border-style: solid;
+    border-width: 10px;
+    -moz-border-image: url("../images/background/BrushedAluminiumChat2.png") 10 stretch; /* Safari 3.1-5 */
+    -webkit-border-image: url("../images/background/BrushedAluminiumChat2.png") 10 stretch; /* Safari 3.1-5 */
+    -o-border-image: url("../images/background/BrushedAluminiumChat2.png") 10 stretch; /* Opera 11-12.1 */
+    border-image: url("../images/background/BrushedAluminiumChat2.png") 10 stretch;
+    background-color: green;
+    height: calc(18vh + 5px);
+    width: calc(100% - 26px);
+    padding-bottom: 1%;
+    padding-top: 1%;
+}
+
+/*
+#lobby .row-fluid
+{
+    height: 50%;
+}
+*/
+
+
+#lobby .row-fluid [class*='col-']
+{
+    height: 50%;
+}
+
+#lobby .row-fluid,
+#rooms, #rooms .row-fluid [class*='col-'], 
+#people, #people .row-fluid [class*='col-']
+{
+    height: 100%;
+}
+/*
+#rooms
+{
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    overflow: hidden;
+}
+
+#rooms > li, #rooms > li > a,
+#people > li, #people > li > a
+{
+    height: 100%;
+}
+
+#rooms > li 
+{
+    float: left;
+    min-width: 87px;
+    width: 33%;
+}
+
+#rooms > li > a 
+{
+    padding-left: calc(100% - 130px);
+    padding-right: calc(100% - 130px);
+    text-align: center;
+    height: 100%; 
+    line-height: 100%;
+}
+
+#rooms > li > a > span
+{
+    display: inline-block;
+    vertical-align: middle;
+    float: none;
+}
+*/
+/************************* GAME AREA ****************************/
+
+#game-area
+{
+    position: absolute;
+    width: calc(100% - 26px);
+}
+
+#game-area.before
+{
+    border-style: solid;
+    border-width: 10px;
+    -moz-border-image: url("../images/background/BrushedAluminiumChat2.png") 10 stretch; /* Safari 3.1-5 */
+    -webkit-border-image: url("../images/background/BrushedAluminiumChat2.png") 10 stretch; /* Safari 3.1-5 */
+    -o-border-image: url("../images/background/BrushedAluminiumChat2.png") 10 stretch; /* Opera 11-12.1 */
+    border-image: url("../images/background/BrushedAluminiumChat2.png") 10 stretch;
+    background-position: -5px -5px; 
+    background: url("../images/background/wood.png") no-repeat;
+    top: calc(18vh + 10px);
+    height: calc(50vh - 5px);
+}
+
+#game-area.after
+{
+    top: 15px;
+    left: 15px;
+    width: calc(100% - 30px);
+    height: calc(100vw - 30px + 12vh);
+}
+    
+a href
+{
+    font-size: 40vw;
+}
+/*#lobby
+{
+    position: absolute;
+    top: 12px;
+    margin-left: 0.666%;
+    margin-right: 5.333%;
+    border-style: solid;
+    border-width: 10px;
+    -moz-border-image: url("../images/background/BrushedAluminiumChat2.png") 10 stretch; 
+    -webkit-border-image: url("../images/background/BrushedAluminiumChat2.png") 10 stretch; 
+    -o-border-image: url("../images/background/BrushedAluminiumChat2.png") 10 stretch; 
+    border-image: url("../images/background/BrushedAluminiumChat2.png") 10 stretch;
+    border-image-outset: 3px;
+    background-color: green;
+    height: 18%;
+    margin-top: 0.53%;
+    padding: 0px;
+    width: calc(100% - 31px);
+}*/
+
+#score 
+{
+    left: calc(-22vw + 22%);
+    right: calc(-22vw + 22%);
+    border-style: solid;
+    border-width: 12px;
     -moz-border-image: url("../images/background/BrushedAluminium.png") 12 stretch; /* Safari 3.1-5 */
     -webkit-border-image: url("../images/background/BrushedAluminium.png") 12 stretch; /* Safari 3.1-5 */
     -o-border-image: url("../images/background/BrushedAluminium.png") 12 stretch; /* Opera 11-12.1 */
     border-image: url("../images/background/BrushedAluminium.png") 12 stretch;
     outline-color: black;
     outline-style: solid;
+    height: 12vh;
 }
 
-chat-area
+.column-left
 {
-    padding: 5px;
+    text-align: left;
+}
+
+.column-right
+{
+    text-align: right;
 }
 
 #board
@@ -110,97 +361,10 @@ chat-area
     background-size: 3700%;
     display:block;    
     border-radius:18px;
-    border: 60px solid transparent;
-    -moz-border-image: url("../images/background/BrushedAluminium.png") 60 stretch; /* Safari 3.1-5 */
-    -webkit-border-image: url("../images/background/BrushedAluminium.png") 60 stretch; /* Safari 3.1-5 */
-    -o-border-image: url("../images/background/BrushedAluminium.png") 60 stretch; /* Opera 11-12.1 */
-    border-image: url("../images/background/BrushedAluminium.png") 60 stretch;
     outline-color: black;
     outline-style: solid;
 }
 
-#score 
-{
-    margin: 0 auto;
-    padding:0;
-    border: 12px solid transparent;
-    -moz-border-image: url("../images/background/BrushedAluminium.png") 12 stretch; /* Safari 3.1-5 */
-    -webkit-border-image: url("../images/background/BrushedAluminium.png") 12 stretch; /* Safari 3.1-5 */
-    -o-border-image: url("../images/background/BrushedAluminium.png") 12 stretch; /* Opera 11-12.1 */
-    border-image: url("../images/background/BrushedAluminium.png") 12 stretch;
-    outline-color: black;
-    outline-style: solid;
-}
-
-.myButton 
-{
-    background: url('../images/background/brushed_aluminium_button.png') #f2f2f2;
-    background-repeat: no-repeat;
-    color: #000;
-    background-size: 100% 100%;
-    border-radius: 24px;
-}
-.myButton  :hover 
-{
-    background: url('../images/background/brushed_aluminium_button.png') #e0e0e0;
-    background-repeat: no-repeat;
-    color: #000;
-    background-size: 100% 100%;
-    border-radius: 24px;
-}
-.myButton  :active 
-{
-    background: url('../images/background/brushed_aluminium_button.png') #c0c0c0;
-    background-repeat: no-repeat;
-    color: #000;
-    background-size: 100% 100%;
-    border-radius: 24px;
-}
-
-#warning-message { display: none; }
-@media only screen and (orientation:landscape){
-    #wrapper { display:none; }
-    #warning-message { display:block; }
-}
-@media only screen and (orientation:portrait){
-    #warning-message { display:none; }
-}
-/*
-@media screen and (orientation: landscape) {
-    #board
-    {    
-        position: absolute;
-        top: 0px;
-        left: 0px;
-        width: 320px;
-        height:320px;
-    }
-
-    #chatWrap
-    {
-        float:right;
-    }
-
-    #score 
-    {
-        float:right;
-    }
-
-    .container
-    {
-        height:320px;
-        padding-right:0px;
-        margin-right:0px;
-    }
-    
-    #main-screen
-    {
-        height:100%;
-        padding-right:0px;
-        margin-right:0px;
-    }
-}
-*/
 #board .large
 {
     width: 8.33334%;
@@ -294,22 +458,6 @@ chat-area
     opacity: 0.1;
 }
 
-#formChat
-{
-    margin-bottom: 5px;
-}
-
-#chatWrap
-{
-    padding-top: 1px;
-    padding-bottom: 0px;
-    margin-bottom: 0px;
-}
-.clear
-{
-    clear: left;
-}
-
 .active
 {
     pointer-events: auto;
@@ -330,15 +478,250 @@ chat-area
     opacity: 0.1;
 }
 
-.column-left
+.col-wrap
 {
-    text-align: left;
+    overflow: hidden;
 }
 
-.column-right
+/************************* CHAT ****************************/
+
+#chat
 {
-    text-align: right;
+    position: absolute;
+    border-style: solid;
+    border-width: 10px;
+    -moz-border-image: url("../images/background/BrushedAluminiumChat2.png") 10 stretch; /* Safari 3.1-5 */
+    -webkit-border-image: url("../images/background/BrushedAluminiumChat2.png") 10 stretch; /* Safari 3.1-5 */
+    -o-border-image: url("../images/background/BrushedAluminiumChat2.png") 10 stretch; /* Opera 11-12.1 */
+    border-image: url("../images/background/BrushedAluminiumChat2.png") 10 stretch;
+    background: url("../images/background/wood.png") no-repeat;
+    background-position: -5px -5px;
+    width: calc(100% - 26px);
 }
+
+#chat.before
+{
+    height: calc(32vh - 12px);
+    top: 68vh;
+}
+
+#chat.after
+{
+    height: calc(100vh - (12vh + 100vw - 5px));
+    top: calc(12vh + 100vw - 18px);
+}
+
+.screen 
+{
+    background-color: black;
+    outline-color: white;
+    outline-style: solid;
+    width: 100%;
+}
+
+#chatWrap{
+    
+}
+
+#createRoom, #leave, #checkAnswer, #checkAnswerBtn, #login, #signup, #send
+{
+    background: url('../images/background/brushed_aluminium_button_long.png');
+    background-size: 100% 100%;
+    
+}
+
+.buttons
+{
+    margin-left: calc(1.5% - 3px);
+}
+
+.form 
+{
+}
+
+#conversation
+{
+    font-size: 18px;
+    margin-left: 1.5%;
+    margin-top: 1.5%;
+    margin-bottom: 1.5%;
+    width: 97%;
+    height: 33%;
+    overflow: hidden;
+}
+
+#msgs
+{
+    margin-bottom:0px;
+}
+
+#chatForm
+{
+    margin-left: calc(1.5% - 3px);
+    margin-top: 1.5%;
+    padding-bottom: 10%;
+    width: calc(97% + 6px);
+}
+
+#msg
+{
+    width: 95%;
+    margin-top: 3px;
+}
+
+#send
+{
+    width: 100%;
+}
+
+/******************** Beginning of bootstrap modifications *****************/
+
+.btn 
+{
+    background: url('../images/background/brushed_aluminium_button.png');
+    background-repeat: no-repeat;
+    color: #000;
+    border-color: #1f1f14;
+    background-size: 100% 100%;
+    border-radius: 24px;
+    box-shadow: 0 3px 0 0 #d6d6c2,
+    0 5px 0 0 #000;
+}
+
+.btn:focus,
+.btn:active:focus,
+.btn.active:focus,
+.btn.focus,
+.btn:active.focus,
+.btn.active.focus 
+{
+    background: url('../images/background/brushed_aluminium_button.png');
+    background-repeat: no-repeat;
+    color: #000;
+    border-color: #1f1f14;
+    background-size: 100% 100%;
+    border-radius: 24px;
+}
+
+.btn:hover,
+.btn:focus,
+.btn.focus 
+{
+    background: url('../images/background/brushed_aluminium_button.png');
+    background-repeat: no-repeat;
+    color: #000;
+    border-color: #1f1f14;
+    background-size: 100% 100%;
+    border-radius: 24px;
+    text-decoration: none;
+  
+}
+
+.btn:active,
+.btn.active 
+{
+    background: url('../images/background/brushed_aluminium_button.png');
+    background-repeat: no-repeat;
+    color: #000;
+    border-color: #1f1f14;
+    background-size: 100% 100%;
+    border-radius: 24px;
+    box-shadow: none;
+	margin-bottom: -3px;
+	margin-top: 3px;
+}
+
+.nav-pills > li.active > a,
+.nav-pills > li.active > a:hover,
+.nav-pills > li.active > a:focus 
+{
+  background-color: #000;
+}
+
+.list-group-item.active > .badge,
+.nav-pills > .active > a > .badge 
+{
+  color: #000;
+  top: 50%
+}
+
+.list-group-item.active,
+.list-group-item.active:hover,
+.list-group-item.active:focus 
+{
+  background-color: #000;
+  border-color: #000;
+}
+
+.list-group-item {
+  padding: 4% 15px;
+  height: 100%;
+}
+.nav-pills a {
+  padding: 1.5vh 0;
+  position: absolute;
+}
+
+.badge 
+{
+  background-color: #000;
+  min-width: 30px;
+}
+
+.list-group {
+  margin-bottom: 0px;
+  padding-left: 0;
+}
+.nav-pills > li > a > .badge {
+  margin-left: 0px;
+}
+
+/************************* End of bootstrap modifications ******************************/
+
+#warning-message { display: none; }
+@media only screen and (orientation:landscape){
+    #wrapper { display:none; }
+    #warning-message { display:block; }
+}
+@media only screen and (orientation:portrait){
+    #warning-message { display:none; }
+}
+/*
+@media screen and (orientation: landscape) {
+    #board
+    {    
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        width: 320px;
+        height:320px;
+    }
+
+    #chatWrap
+    {
+        float:right;
+    }
+
+    #score 
+    {
+        float:right;
+    }
+
+    .container
+    {
+        height:320px;
+        padding-right:0px;
+        margin-right:0px;
+    }
+    
+    #main-screen
+    {
+        height:100%;
+        padding-right:0px;
+        margin-right:0px;
+    }
+}
+*/
 
 .row.no-gutter [class*='col-']:not(:first-child), .row.no-gutter [class*='col-']:not(:last-child)
 {
@@ -346,58 +729,16 @@ chat-area
     padding-left: 0;
 }
 
-.row.no-gutter
+.row-fluid.no-gutter-at-all [class*='col-'], .row.no-gutter-at-all [class*='col-']
+{
+    padding-right: 0;
+    padding-left: 0;
+}
+
+.row.no-gutter, .row-fluid.no-gutter-at-all
 {
     margin-left: 0;
     margin-right: 0;
-}
-
-.col-wrap
-{
-    overflow: hidden;
-}
-
-#conversation
-{
-    font-size: 18px;
-    margin: 0px;
-    height: 45px;
-    overflow: hidden;
-}
-
-#msgs 
-{
-    margin-bottom:0px;
-}
-
-h1 
-{
-    font-size: 48px;
-    font-family: Arial,sans-serif;
-    color:#DDCCEE;
-}
-
-.input-group {
-    width:200px;
-    text-align:center;
-    margin:0 auto;
-}
-
-.panel-whole 
-{ 
-    text-align: center; 
-}
-
-.panel-body > a 
-{ 
-    margin: 0 auto;
-    padding-right: 8px;
-    padding-left: 8px;
-}
-
-#warning-message
-{
-    text-align: center;
 }
 
 /* .modal-fullscreen */
@@ -426,6 +767,12 @@ h1
   width: 100%;
 }
 
+/**************** warning message ************************/
+
+#warning-message
+{
+    text-align: center;
+}
 
 @media only screen and (orientation:landscape) and (min-width: 768px){
     #wrapper { display:initial; }
@@ -434,21 +781,55 @@ h1
 @media only screen and (orientation:portrait) and (min-width: 768px){
     #warning-message { display:none; }
 }
+
+/****************** media queries *********************/
+
+@media (max-width: 500px) {
+
+/******************** Beginning of bootstrap modifications *****************/
+
+.list-group-item {
+  padding: 4% 1px;
+  height: 100%;
+}
+
+.nav-pills a {
+  padding: 1.5vh 1px;
+  position: absolute;
+}
+    
+}
 @media (min-width: 768px) {
-  .modal-fullscreen .modal-dialog {
-    width: 750px;
-  }
+/************************* GAME AREA ****************************/
 
-  .input-group 
-  {
-    width:300px;
-  }
+#lobby
+{
+    padding: 1%;
+}
 
-  #conversation
-  {
-    margin: 30px;
-    height: 100px;
-  }
+#game-area.after
+{
+    top: 0px;
+    height: calc(100vw - 31px + 6vh);
+}
+
+#score 
+{
+    height: 6vh;
+}
+
+/************************* CHAT ****************************/
+
+#chat.after
+{
+    height: calc(100vh - (6vh + 100vw + 2px));
+    top: calc(6vh + 100vw - 23px);
+}
+
+#chatForm
+{
+    padding-bottom: 5%;
+}
 }
 
 @media only screen and (orientation:landscape) and (min-width: 992px){
@@ -462,15 +843,67 @@ h1
   .modal-fullscreen .modal-dialog {
     width: 970px;
   }
+/************************* LOBBY ****************************/
 
-  .input-group {
-    width:400px;
-  }
+#lobby
+{
+    height: calc(20vh + 5px);
+    width: calc(33.3333333333% - 8px);
+    left: calc(66.66666667% - 5px);
+    padding: .2%;
+    
+}
+/************************* GAME AREA ****************************/
 
-  #conversation
-  {
-    height: 250px;
-  }
+#game-area
+{
+    position: absolute;
+    width: calc(66.66666667% - 13px);
+}
+
+#game-area.before
+{
+    height: calc(100vh - 26px);
+    top: 13px;
+}
+
+#game-area.after
+{
+    top: 15px;
+    width: calc(94vh - 30px);
+    left: 15px;
+    height: calc(100% - 30px);
+}
+
+#score 
+{
+    height: 6vh;
+    width: calc(94vh - 30px);
+}
+
+#board
+{    
+    height: calc(94vh - 30px);
+    width: calc(94vh - 30px);
+}
+
+/************************* CHAT ****************************/
+
+#chat.before
+{
+    top: calc(20vh + 13px);
+    height: calc(80vh - 26px);
+    width: calc(33.3333333333% - 8px);
+    left: calc(66.66666667% - 5px);
+}
+
+#chat.after
+{
+    top: calc(0vh + 13px);
+    height: calc(100vh - 26px);
+    width: calc(100vw - 94vh + 3px);
+    left: calc(94vh - 16px);
+}
 }
 
 @media only screen and (orientation:landscape) and (min-width: 1200px){
@@ -485,8 +918,13 @@ h1
      width: 1170px;
   }
 
-.input-group {
-    width:500px;
+.jumbotron {
+  width: 75%;
+}
+
+#loginWrap
+{
+  width: 50%;
 }
 }
 
