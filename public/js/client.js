@@ -73,7 +73,42 @@ function timeFormat(msTime) {
 }
 
 $(document).ready(function() {
-  //setup "global" variables first
+  $('#overviewPager').bootpag({
+    total: 4,
+    page: 1,
+    maxVisible: 4,
+    leaps: true,
+    firstLastUse: true,
+    first: '←',
+    last: '→',
+    wrapClass: 'pagination',
+    activeClass: 'active',
+    disabledClass: 'disabled',
+    nextClass: 'next',
+    prevClass: 'prev',
+    lastClass: 'last',
+    firstClass: 'first'
+}).on("page", function(event, num){
+    $("#overviewContent").html($("#overview" + num).text()); // or some ajax content loading...
+});
+  $('#rulesPager').bootpag({
+    total: 4,
+    page: 1,
+    maxVisible: 4,
+    leaps: true,
+    firstLastUse: true,
+    first: '←',
+    last: '→',
+    wrapClass: 'pagination',
+    activeClass: 'active',
+    disabledClass: 'disabled',
+    nextClass: 'next',
+    prevClass: 'prev',
+    lastClass: 'last',
+    firstClass: 'first'
+}).on("page", function(event, num){
+    $("#rulesContent").html($("#rule" + num).text()); // or some ajax content loading...
+});
   var socket = io.connect();
   var myRoomID = active = null;
   $("#score").hide();
@@ -208,9 +243,9 @@ $(document).ready(function() {
     if (!jQuery.isEmptyObject(data.rooms)) { 
       var displayNoRooms = 0;
       $.each(data.rooms, function(id, room) {
-        if (room.s === parseInt(data.s)) {
+        if (room.size === data.s) {
           var html = "<button id="+id+" data-roomName="+room.name+" class='btn btn-default btn-xs' >Join</button>" + " " + "<button id="+id+" class='removeRoomBtn btn btn-default btn-xs'>Remove</button>";
-          $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.s + "</span> " + html + "</li>");
+          $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.size + "</span> " + html + "</li>");
         } else {
           if (displayNoRooms < 1) {
               $("#listOfRooms").append("<li class=\"list-group-item\">There are other room sizes available!</li>");
@@ -529,21 +564,21 @@ $('body').on('click', '#listOfRooms li', function(){
     $("#rooms").append(
             "<div class=\"row-fluid no-gutter-at-all\" >" +
               "<div class=\"col-xs-4 \" >"+
-                  "<li id = \"12\" class=\"list-group-item\" role=\"presentation\"><a href=\"#\">Large <span class=\"badge\">"+ (typeof data.count.large != 'undefined' ? data.count.large : 0) +"</span></a></li>" +
+                  "<li id = \"Large\" class=\"list-group-item\" role=\"presentation\"><a href=\"#\">Large <span class=\"badge\">"+ (typeof data.count.large != 'undefined' ? data.count.large : 0) +"</span></a></li>" +
               "</div>" +
               "<div class=\"col-xs-4 \" >"+
-                  "<li id = \"6\" class=\"list-group-item\" role=\"presentation\"><a href=\"#\">Medium <span class=\"badge\">"+ (typeof data.count.medium != 'undefined' ? data.count.medium : 0) +"</span></a></li>" +
+                  "<li id = \"Medium\" class=\"list-group-item\" role=\"presentation\"><a href=\"#\">Medium <span class=\"badge\">"+ (typeof data.count.medium != 'undefined' ? data.count.medium : 0) +"</span></a></li>" +
               "</div>" +
               "<div class=\"col-xs-4 \" >"+
-                  "<li id = \"4\" class=\"list-group-item\" role=\"presentation\"><a href=\"#\">Small <span class=\"badge\">"+ (typeof data.count.small != 'undefined' ? data.count.small : 0) +"</span></a></li>" +
+                  "<li id = \"Small\" class=\"list-group-item\" role=\"presentation\"><a href=\"#\">Small <span class=\"badge\">"+ (typeof data.count.small != 'undefined' ? data.count.small : 0) +"</span></a></li>" +
               "</div>" +
             "</div>");
     if (!jQuery.isEmptyObject(data.rooms)) { 
       var displayNoRooms = 0;
       $.each(data.rooms, function(id, room) {
-        if (room.s === parseInt(data.s)) {
+        if (room.size === data.s) {
           var html = "<button id="+id+" data-roomName="+room.name+" class='btn btn-default btn-xs' >Join</button>" + " " + "<button id="+id+" class='removeRoomBtn btn btn-default btn-xs'>Remove</button>";
-          $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.s + "</span> " + html + "</li>");
+          $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.size + "</span> " + html + "</li>");
         } else {
           if (displayNoRooms < 1) {
               $("#listOfRooms").append("<li class=\"list-group-item\">There are other room sizes available!</li>");
@@ -569,12 +604,12 @@ $('body').on('click', '#listOfRooms li', function(){
     $(this).parent().addClass('active').siblings().removeClass('active');           
 });*/
     $('#rooms li').removeClass('active');
-    $('#'+data.s.toString()).addClass('active');
+    $('#'+data.s).addClass('active');
   });
   
   socket.on("updateActive", function(data) {
     $('#rooms li').removeClass('active');
-    $('#'+data.s.toString()).addClass('active');
+    $('#'+data.s).addClass('active');
   });
 
   socket.on("sendRoomID", function(data) {

@@ -274,7 +274,7 @@ function updateAfterOwnerDisrupt(s, size){
 				if (err) throw err;
 					console.log(user); // show the one user
 			  
-				size  = parseInt(user.local.size);
+				size  = user.local.size;
 				index = getBadgeIndex(index, size);
 				s.broadcast.emit("updateOwnerLeaveRoom", index);
 				s.emit("updateActive", {s: size});
@@ -283,10 +283,10 @@ function updateAfterOwnerDisrupt(s, size){
 
 function getBadgeIndex(index, size){
 	
-	if (size === 4)     	{
+	if (size === 'Small')     	{
 		console.log('size is 4: ' + size);
     	index = 2;      	} 
-	else if (size === 6)	{
+	else if (size === 'Medium')	{
 		console.log('size is 6: ' + size);
     	index = 1;          }
 	else                    {
@@ -336,9 +336,10 @@ io.sockets.on("connection", function (socket) {
 				if (err) throw err;
 					console.log(user); // show the one user
 			  
-				size  = parseInt(user.local.size);
+				size  = user.local.size;
 				var room = new Room(name, id, socket.id, size);
 				rooms[id] = room;
+					console.log(rooms[id]);
 				people[socket.id].owns = id;
 				room.sortColors();
 				var tile = room.getRandomTile();
@@ -433,7 +434,7 @@ io.sockets.on("connection", function (socket) {
 	var User            = require('./app/models/user');// get the user
 	User.findById(people[socket.id].databaseID, function(err, user) {
 	  if (err) throw err;
-	size  = parseInt(user.local.size)
+	size  = user.local.size
 	});
 		country = data.country.toLowerCase();
 		people[socket.id].country = country;
@@ -545,11 +546,11 @@ io.sockets.on("connection", function (socket) {
 				if (err) throw err;
 					console.log(user); // show the one user
 			  
-				size  = parseInt(user.local.size);
-				if(parseInt(roomSize) !== size) {
+				size  = user.local.size;
+				if(roomSize !== size) {
 					
 					  // change the users location
-					  user.local.size = parseInt(roomSize);
+					  user.local.size = roomSize;
 					
 					  // save the user
 					  user.save(function(err) {
@@ -578,6 +579,7 @@ io.sockets.on("connection", function (socket) {
 	    io.sockets.in(socket.room).emit('sendScoresToClients', data);
 	});	*/
 	socket.on("adjustScore", function(data) {
+        var correctAnswer = false;
 		var room = getRoom();
 		people[socket.id].score += data.score;
 		if (data.decreaseAttempts) {
@@ -589,6 +591,9 @@ io.sockets.on("connection", function (socket) {
 		data.score = people[socket.id].score;
 					console.log("Player's score is: " + data.score );
 	    io.sockets.in(socket.room).emit('sendScoresToClients', data);
+        correctAnswer = data.result;
+        if (correctAnswer)
+		validateMoves(room, data, correctAnswer);
 	});	
 
 	socket.on("removeRoom", function(id) {
@@ -666,7 +671,7 @@ io.sockets.on("connection", function (socket) {
 	    socket.broadcast.to(socket.room).emit("setUncovered", data);
 	};
 	
-	var validateMoves = function (room, data){
+	var validateMoves = function (room, data, correctAnswer){
 	    var peoples = room.getPeople();
   		var playersWithValidMoves = peoples.length;
 		var highestScore = 0;
@@ -683,7 +688,7 @@ io.sockets.on("connection", function (socket) {
 		  	highestScore = data.myPlayerScore;
 		  }
 		}
-		if (playersWithValidMoves === 0) {
+		if (playersWithValidMoves === 0 || correctAnswer) {
 			for(i = 0; i < peoples.length; i++) {
 				if (peoples[i] == winnersId) {
     				io.sockets.socket(peoples[i]).emit('update', 'You won!');

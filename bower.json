@@ -6,7 +6,8 @@
     "jquery": "latest",
     "typeahead.js": "latest",
     "font-awesome": "latest",
-    "bootswatch-dist": "cyborg"
+    "bootswatch-dist": "cyborg",
+    "bootpag": "^1.0.7"
   },
   "directory": "components",
   "homepage": "https://github.com/tamaspiros/advanced-chat",

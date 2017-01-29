@@ -69,14 +69,17 @@ module.exports = function(app, passport) {
     	
     	    // show the one user
     	    console.log(user);
-        	var size  = parseInt(user.local.size),
+        	var size  = user.local.size,
         		board ="";
-        	if ( size === 4){
+        	if ( size === 'Small'){
         		board = "small";
-        	} else if (size === 6){
+        		size = 4;
+        	} else if (size === 'Medium'){
         		board = "medium";
+        		size = 6;
         	} else {
         		board = "large";
+        		size = 12;
         	}
         	
           	res.render('pages/index.ejs', {

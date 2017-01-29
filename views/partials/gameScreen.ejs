@@ -2,8 +2,69 @@
     <% include lobby %>   
 </div>
 <div id="game-area" class="col-md-8 col-md-pull-4 before">
-        <div id="listOfRooms" class="collapse"></div>
-        <div id="listOfPeople" class="collapse"></div>
+    <ul  id = "navigation" class="nav nav-pills">
+		<li class="active">
+            <a  href="#Lobby" data-toggle="tab">Lobby</a>
+		</li>
+		<li>
+		    <a href="#Overview" data-toggle="tab">Overview</a>
+		</li>
+		<li>
+		    <a href="#Rules" data-toggle="tab">Rules</a>
+		</li>
+	</ul>
+
+	<div  id = "navigationBody" class="tab-content clearfix">
+		<div class="tab-pane active" id="Lobby">
+            <div id="listOfRooms" class="collapse"></div>
+            <div id="listOfPeople" class="collapse"></div>
+		</div>
+		<div class="tab-pane" id="Overview">
+            <div id="overviewContent"><p>Tic Tac Pic could be played by 2 players in Small and Medium room sizes, and by 2-4 players when Large room chosen</p></div>
+            <div id="overviewPager"></div>
+            <div id = "overview1" class = "pagerPage">
+                <p>Tic Tac Pic is a responsive turn based game, that could be played on any divice ranging from a mobile phone through to a tablet or a desktop.
+                It could be played by 2 players in Small and Medium room sizes, and by 2-4 players when Large room was chosen</p>
+            </div>
+            <div id = "overview2" class = "pagerPage">
+                <p>Players can chat while connected to the same room</p>
+            </div>
+            <div id = "overview3" class = "pagerPage">
+		        <p>Players can either create their own room by pressing Create room button, or join another player by clicking on the room size of their choice. Clicking again on the room size will reveal the available rooms(note: Player can see those rooms under the the Lobby tab)</p>
+            </div>
+            <div id = "overview4" class = "pagerPage">
+		        <p>The game starts after one of the players in the same room pressed the Start button</p>
+            </div>
+        </div>
+        <div class="tab-pane" id="Rules">
+            <div id="rulesContent"><p>Player with the highest score at the end of a game is the winner. 
+                Players can gain points in two different ways:</p></div>
+            <div id="rulesPager"></div>
+            <div id = "rule1" class = "pagerPage">
+                <p>Player with the highest score at the end of a game is the winner. 
+                Players can gain points in two different ways:</p>
+            </div>
+            <div id = "rule2" class = "pagerPage">
+                <p>1) Uncover 3-5 consecutive squares in either direction
+                        3 * square = 20 points
+                        4 * square = 50 points
+                        5 * square = 100 points
+                    Only the highest amount counts.
+                    Already uncovered squares can not be extended nor reused.
+                    It is possible to complete multiple winning sets in one turn.
+                    </p>
+            </div>
+            <div id = "rule3" class = "pagerPage">
+		        <p>2) After uncovering winning squares, a player will also have the opportunity to guess what is on the underlying image(Check answer button will appear).
+                    Each player can have up to three attempts.
+                    Correct guess incurres 100 points, wrong answer incurres penalty 50 points.</p>
+            </div>
+            <div id = "rule4" class = "pagerPage">
+		        <p>The game ends either when none of the players in the room have any valid moves left, or after one of the players correctly guessed what is on the background image.
+		        Enjoy the game!!!</p>
+            </div>
+		</div>
+    </div>
 </div>
 <div id="chat" class="col-md-4 before">
     <% include chat %>   
