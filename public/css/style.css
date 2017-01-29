@@ -989,6 +989,11 @@ a href
     height: calc(100% - 30px);
 }
 
+#Overview, #Rules
+{
+    height: calc(100% - 40px);
+}
+
 #score 
 {
     height: 6vh;
