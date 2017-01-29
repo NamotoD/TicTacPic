@@ -61,6 +61,11 @@ html, body, #wrapper, .container, #main-screen
    to {-webkit-transform: rotate(360deg);}
 }
 
+.pace-running #wrapper, #gameBoard
+{
+    display: none;
+}
+
 .spinWrapper
 {
     position: fixed;
@@ -307,6 +312,67 @@ a href
 {
     font-size: 40vw;
 }
+
+.pagerPage
+{
+    display: none;
+}
+
+#navigation
+{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+
+#navigation > li
+{
+    width: 33.33333333%;
+    margin: 0px;
+    padding: 0px;
+}
+
+#navigationBody
+{
+    top: 10%;
+    height: 100%;
+}
+
+#Overview, #Rules
+{
+    position: relative;
+    height: 100%;
+    background-color: #999;
+}
+
+#overviewContent, #rulesContent
+{
+    padding: 2%;
+    color: black;
+    background-color: #999;
+}
+
+#overviewPager, #rulesPager
+{
+    position: absolute;
+    width: 100%;
+    bottom: 40px;
+}
+
+.pagination
+{
+    display: table;
+    margin: 0 auto;
+}
+
+.pagination > .active > a, .pagination > .active > span, .pagination > .active > a:hover, .pagination > .active > span:hover, .pagination > .active > a:focus, .pagination > .active > span:focus {
+    z-index: 3;
+    color: #ffffff;
+    background-color: #000;
+    border-color: transparent;
+    cursor: default;
+}
+
 /*#lobby
 {
     position: absolute;
@@ -401,56 +467,67 @@ a href
 #board .Default
 {
     background-position: 0 0;
+    outline: #000 1px solid;
 }
 
 #board .violet
 {
     background-position: 0 18.18%;
+    outline: #000 1px solid;
 }
 
 #board .violetUncovered
 {
     background-position: 0 27.27%;
+    outline: #000 1px solid;
 }
 
 #board .red
 {
     background-position: 0 36.36%;
+    outline: #000 1px solid;
 }
 
 #board .redUncovered
 {
     background-position: 0 45.45%;
+    outline: #000 1px solid;
 }
 
 #board .yellow
 {
     background-position: 0 54.54%;
+    outline: #000 1px solid;
 }
 
 #board .yellowUncovered
 {
     background-position: 0 63.63%;
+    outline: #000 1px solid;
 }
 
 #board .green
 {
     background-position: 0 72.72%;
+    outline: #000 1px solid;
 }
 
 #board .greenUncovered
 {
     background-position: 0 81.81%;
+    outline: #000 1px solid;
 }
 
 #board .blue
 {
     background-position: 0 90.9%;
+    outline: #000 1px solid;
 }
 
 #board .blueUncovered
 {
     background-position: 0 99.99%;
+    outline: #000 1px solid;
 }
 
 #board .transparent
@@ -527,6 +604,7 @@ a href
 {
     background: url('../images/background/brushed_aluminium_button_long.png');
     background-size: 100% 100%;
+    max-width: 120px;
     
 }
 
@@ -651,14 +729,15 @@ a href
 {
   background-color: #000;
   border-color: #000;
+  
 }
 
 .list-group-item {
-  padding: 4% 15px;
   height: 100%;
+  padding: 3vh 15px;
 }
 .nav-pills a {
-  padding: 1.5vh 0;
+  padding: 0 0;
   position: absolute;
 }
 
@@ -807,10 +886,35 @@ a href
     padding: 1%;
 }
 
+.list-group-item {
+  height: 100%;
+  padding: 3vh 15px;
+}
+.nav-pills a {
+  padding: 0 0;
+  position: absolute;
+}
+
 #game-area.after
 {
     top: 15px;
     height: calc(100vw - 31px + 6vh);
+}
+
+.pagerPage
+{
+    display: block;
+    color: black;
+}
+
+#overviewContent, #rulesContent
+{
+    display: none;
+}
+
+#overviewPager, #rulesPager
+{
+    display: none;
 }
 
 #score 
@@ -853,6 +957,16 @@ a href
     padding: .2%;
     
 }
+
+.list-group-item {
+  height: 100%;
+  padding: 3vh 15px;
+}
+.nav-pills a {
+  padding: 0 0;
+  position: absolute;
+}
+
 /************************* GAME AREA ****************************/
 
 #game-area
@@ -925,6 +1039,15 @@ a href
 #loginWrap
 {
   width: 50%;
+}
+
+.list-group-item {
+  height: 100%;
+  padding: 3vh 15px;
+}
+.nav-pills a {
+  padding: 0 0;
+  position: absolute;
 }
 }
 

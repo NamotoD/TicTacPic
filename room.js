@@ -4,10 +4,11 @@ function Room(name, id, owner, boardSize) {
   this.owner = owner;
   this.people = [];
   this.Board = [];
-  this.s = boardSize;
-  this.boardRange = boardSize*boardSize;
+  this.size = boardSize;
+  this.s = this.convertSizeToNum(boardSize);
+  this.boardRange = this.s*this.s;
   this.colors = ['violet', 'red', 'yellow', 'green', 'blue'];
-  this.peopleLimit = (boardSize === 12) ? 4 : 2;
+  this.peopleLimit = (this.s === 12) ? 4 : 2;
   this.status = "available";
   this.private = false;
   this.buttonNames = ['b1',      'b2',       'b3',
@@ -23,6 +24,23 @@ function Room(name, id, owner, boardSize) {
   "pelican", "rhyno", "seagull", "seal", "sloth", "squirrel", "swan", "tiger", "turtle", "wolf"];
   this.currentPic = "";
 }
+
+Room.prototype.convertSizeToNum = function(boardsize) {
+  var size = 0;
+  if (boardsize === 'Small') 
+  {
+    size = 4;
+  }
+  if (boardsize === 'Medium') 
+  {
+    size = 6;
+  }
+  if (boardsize === 'Large') 
+  {
+    size = 12;
+  }
+  return size;
+};
 
 Room.prototype.sortColors = function() {
   this.colors.sort(function() { return 0.5 - Math.random();});
