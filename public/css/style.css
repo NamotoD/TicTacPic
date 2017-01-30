@@ -215,7 +215,7 @@ h1 {
     -o-border-image: url("../images/background/BrushedAluminiumChat2.png") 10 stretch; /* Opera 11-12.1 */
     border-image: url("../images/background/BrushedAluminiumChat2.png") 10 stretch;
     background-color: green;
-    height: calc(18vh + 5px);
+    height: 18vh;
     width: calc(100% - 26px);
     padding-bottom: 1%;
     padding-top: 1%;
@@ -425,8 +425,7 @@ a href
     width: 100%;
     background-image: url("../images/background/animalsSpriteNew.jpg");
     background-size: 3700%;
-    display:block;    
-    border-radius:18px;
+    display:block;
     outline-color: black;
     outline-style: solid;
 }
