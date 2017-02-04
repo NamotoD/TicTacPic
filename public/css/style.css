@@ -340,8 +340,8 @@ a href
 
 #Overview, #Rules
 {
-    position: relative;
-    height: 100%;
+    position: absolute;
+    height: calc(100% - 39px);
     background-color: #999;
 }
 
@@ -356,7 +356,7 @@ a href
 {
     position: absolute;
     width: 100%;
-    bottom: 40px;
+    bottom: 5px;
 }
 
 .pagination
@@ -371,6 +371,11 @@ a href
     background-color: #000;
     border-color: transparent;
     cursor: default;
+}
+
+#listOfRooms, #listOfPeople
+{
+    height: 100% !important;
 }
 
 /*#lobby
@@ -408,14 +413,10 @@ a href
     height: 12vh;
 }
 
-.column-left
+.verticalMiddle
 {
-    text-align: left;
-}
-
-.column-right
-{
-    text-align: right;
+    display: flex;
+    align-items: center;
 }
 
 #board
@@ -730,14 +731,9 @@ a href
   border-color: #000;
   
 }
-
 .list-group-item {
   height: 100%;
   padding: 3vh 15px;
-}
-.nav-pills a {
-  padding: 0 0;
-  position: absolute;
 }
 
 .badge 
@@ -884,11 +880,6 @@ a href
 {
     padding: 1%;
 }
-
-.list-group-item {
-  height: 100%;
-  padding: 3vh 15px;
-}
 .nav-pills a {
   padding: 0 0;
   position: absolute;
@@ -898,6 +889,12 @@ a href
 {
     top: 15px;
     height: calc(100vw - 31px + 6vh);
+}
+
+#first, #second, #third, #fourth
+{
+    padding-left: 1%;
+    padding-right: 1%;
 }
 
 .pagerPage
@@ -919,6 +916,8 @@ a href
 #score 
 {
     height: 6vh;
+    display: flex;
+    align-items: center;
 }
 
 /************************* CHAT ****************************/
@@ -955,11 +954,6 @@ a href
     left: calc(66.66666667% - 5px);
     padding: .2%;
     
-}
-
-.list-group-item {
-  height: 100%;
-  padding: 3vh 15px;
 }
 .nav-pills a {
   padding: 0 0;
@@ -1043,11 +1037,6 @@ a href
 #loginWrap
 {
   width: 50%;
-}
-
-.list-group-item {
-  height: 100%;
-  padding: 3vh 15px;
 }
 .nav-pills a {
   padding: 0 0;

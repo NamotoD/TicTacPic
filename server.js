@@ -276,7 +276,8 @@ function updateAfterOwnerDisrupt(s, size){
 			  
 				size  = user.local.size;
 				index = getBadgeIndex(index, size);
-				s.broadcast.emit("updateOwnerLeaveRoom", index);
+				var sizeRooms = getSizeRooms(rooms);
+				s.broadcast.emit("updateOwnerLeaveRoom", {rooms: rooms, count: sizeRooms, s: size, index: index});
 				s.emit("updateActive", {s: size});
 			});
 }
@@ -341,7 +342,7 @@ io.sockets.on("connection", function (socket) {
 				rooms[id] = room;
 					console.log(rooms[id]);
 				people[socket.id].owns = id;
-				room.sortColors();
+				room.shuffleColors();
 				var tile = room.getRandomTile();
 					console.log(tile); // show the one user
 				playerSetup(room, socket.id, id, tile, name);
@@ -418,8 +419,8 @@ io.sockets.on("connection", function (socket) {
     	io.sockets.in(socket.room).emit('update', 'New game started!');
 	});
 
-	socket.on("leaveRoom", function(id) {
-		var room = rooms[id];
+	socket.on("leaveRoom", function(data) {
+		var room = rooms[data.roomID];
 		if (room)
 			purge(socket, "leaveRoom");
 	});
@@ -562,7 +563,6 @@ io.sockets.on("connection", function (socket) {
 				} else {
 					var sizeRooms = getSizeRooms(rooms);
 					socket.emit("roomList", {rooms: rooms, count: sizeRooms, s: roomSize});
-					socket.emit("updateActive", {s: roomSize});
 				}
 			});
 	});
@@ -623,7 +623,8 @@ io.sockets.on("connection", function (socket) {
 	var playerSetup = function (room, socketId, id, tile, name){
 		people[socketId].id = socketId;
 		people[socketId].inroom = id;
-		people[socketId].tile = tile;
+		people[socketId].tile = tile[0];
+		people[socketId].tileHex = tile[1];
 		people[socketId].score = 0;
 		people[socketId].attempts = 3;
 		people[socketId].canAnswer = false;

@@ -1,31 +1,31 @@
 function Room(name, id, owner, boardSize) {
-  this.name = name;
-  this.id = id;
-  this.owner = owner;
-  this.people = [];
-  this.Board = [];
-  this.size = boardSize;
-  this.s = this.convertSizeToNum(boardSize);
-  this.boardRange = this.s*this.s;
-  this.colors = ['violet', 'red', 'yellow', 'green', 'blue'];
-  this.peopleLimit = (this.s === 12) ? 4 : 2;
-  this.status = "available";
-  this.private = false;
-  this.buttonNames = ['b1',      'b2',       'b3',
-                           'b4', 'b5', 'b6',
-                      'b7','b8',       'b10','b11',
-                           'b12','b13','b14',
-                      'b15',     'b16',      'b17'];
-  this.numOfPics =[];
-  this.picsRange = 37;
-  this.picNames = ["bear", "cat", "cheetah", "cow", "deer", "dog", "donkey", "duck", "elephant",
-  "emu", "flamingo", "fox", "giraffe", "goat", "gorilla", "hamster", "horse", "hummingbird",
-  "jellyfish", "lama", "leopard", "lion", "monkey", "otter", "owl",  "parrot", "peacock",
-  "pelican", "rhyno", "seagull", "seal", "sloth", "squirrel", "swan", "tiger", "turtle", "wolf"];
-  this.currentPic = "";
+    this.name = name;
+    this.id = id;
+    this.owner = owner;
+    this.people = [];
+    this.Board = [];
+    this.size = boardSize;
+    this.s = this.convertSizeToNum(boardSize);
+    this.boardRange = this.s * this.s;
+    this.colors = [['violet', '#835A96'], ['red', '#F13836'], ['yellow', '#FFCC00'], ['green', '#9FCE30'], ['blue', '#4BBFF0']];
+    this.peopleLimit = (this.s === 12) ? 4 : 2;
+    this.status = "available";
+    this.private = false;
+    this.buttonNames = ['b1',      'b2',       'b3',
+                             'b4', 'b5', 'b6',
+                        'b7','b8',       'b10','b11',
+                             'b12','b13','b14',
+                        'b15',     'b16',      'b17'];
+    this.numOfPics = [];
+    this.picsRange = 37;
+    this.picNames = ["bear", "cat", "cheetah", "cow", "deer", "dog", "donkey", "duck", "elephant",
+      "emu", "flamingo", "fox", "giraffe", "goat", "gorilla", "hamster", "horse", "hummingbird",
+      "jellyfish", "lama", "leopard", "lion", "monkey", "otter", "owl",  "parrot", "peacock",
+      "pelican", "rhyno", "seagull", "seal", "sloth", "squirrel", "swan", "tiger", "turtle", "wolf"];
+    this.currentPic = "";
 }
 
-Room.prototype.convertSizeToNum = function(boardsize) {
+Room.prototype.convertSizeToNum = function (boardsize) {
   var size = 0;
   if (boardsize === 'Small') 
   {
@@ -42,17 +42,17 @@ Room.prototype.convertSizeToNum = function(boardsize) {
   return size;
 };
 
-Room.prototype.sortColors = function() {
+Room.prototype.shuffleColors = function () {
   this.colors.sort(function() { return 0.5 - Math.random();});
 	console.log(this.colors);
 };
 
-Room.prototype.getRandomTile = function() {
+Room.prototype.getRandomTile = function () {
   return this.colors.pop();
 };
 
-Room.prototype.setUpPlayingBoard = function() {
-	for(var i = 0; i < this.boardRange; i++){
+Room.prototype.setUpPlayingBoard = function () {
+	for (var i = 0; i < this.boardRange; i++){
 	  var line = Math.floor(i/this.s);
 	  var position = i - (line * this.s);
 	  this.Board[i] = { "id" : i,

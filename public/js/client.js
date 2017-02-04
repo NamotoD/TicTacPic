@@ -73,6 +73,7 @@ function timeFormat(msTime) {
 }
 
 $(document).ready(function() {
+  
   $('#overviewPager').bootpag({
     total: 4,
     page: 1,
@@ -236,33 +237,53 @@ $(document).ready(function() {
   });
   
   socket.on("updateCreateRoom", function(data) {
-    $("#listOfRooms").text("");
     var $badge = $('#rooms li').find('.badge'),
     count = Number($badge.eq(data.index).text());
     $badge.eq(Number(data.index)).text(count + 1);
-    if (!jQuery.isEmptyObject(data.rooms)) { 
-      var displayNoRooms = 0;
-      $.each(data.rooms, function(id, room) {
-        if (room.size === data.s) {
-          var html = "<button id="+id+" data-roomName="+room.name+" class='btn btn-default btn-xs' >Join</button>" + " " + "<button id="+id+" class='removeRoomBtn btn btn-default btn-xs'>Remove</button>";
-          $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.size + "</span> " + html + "</li>");
-        } else {
-          if (displayNoRooms < 1) {
-              $("#listOfRooms").append("<li class=\"list-group-item\">There are other room sizes available!</li>");
-              displayNoRooms++; 
-          }     
-        }
-      });
-    } else {
-        $("#listOfRooms").append("<li class=\"list-group-item\">There are no rooms yet.</li>");
+    if ($(".list-group-item.active").attr("id") === data.s) {
+      $("#listOfRooms").text("");
+      if (!jQuery.isEmptyObject(data.rooms)) { 
+        var displayNoRooms = 0;
+        $.each(data.rooms, function(id, room) {
+          if (room.size === data.s) {
+            var html = "<button id="+id+" data-roomName="+room.name+" class='btn btn-default btn-xs' >Join</button>"/* + " " + "<button id="+id+" class='removeRoomBtn btn btn-default btn-xs'>Remove</button>"*/;
+            $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.size + "</span> " + html + "</li>");
+          } else {
+            if (displayNoRooms < 1) {
+                $("#listOfRooms").append("<li class=\"list-group-item\">There are other room sizes available!</li>");
+                displayNoRooms++; 
+            }     
+          }
+        });
+      } else {
+          $("#listOfRooms").append("<li class=\"list-group-item\">There are no rooms yet.</li>");
+      }
     }
 	});
   
-  socket.on("updateOwnerLeaveRoom", function(index) {
-    $("#listOfRooms").text("");
+  socket.on("updateOwnerLeaveRoom", function(data) {
     var $badge = $('#rooms li').find('.badge'),
-    count = Number($badge.eq(index).text());
-    $badge.eq(Number(index)).text(count - 1);
+    count = Number($badge.eq(data.index).text());
+    $badge.eq(Number(data.index)).text(count - 1);
+    if ($(".list-group-item.active").attr("id") === data.s) {
+      $("#listOfRooms").text("");
+      if (!jQuery.isEmptyObject(data.rooms)) { 
+        var displayNoRooms = 0;
+        $.each(data.rooms, function(id, room) {
+          if (room.size === data.s) {
+            var html = "<button id="+id+" data-roomName="+room.name+" class='btn btn-default btn-xs' >Join</button>"/* + " " + "<button id="+id+" class='removeRoomBtn btn btn-default btn-xs'>Remove</button>"*/;
+            $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.size + "</span> " + html + "</li>");
+          } else {
+            if (displayNoRooms < 1) {
+                $("#listOfRooms").append("<li class=\"list-group-item\">There are other room sizes available!</li>");
+                displayNoRooms++; 
+            }     
+          }
+        });
+      } else {
+          $("#listOfRooms").append("<li class=\"list-group-item\">There are no rooms yet.</li>");
+      }
+    }
 	});
   
   
@@ -302,8 +323,9 @@ $(document).ready(function() {
   }); 
 
   $("#leave").click(function() {
-    var roomID = myRoomID;
-    socket.emit("leaveRoom", roomID);
+    var roomID = myRoomID,
+    roomSize = $(".list-group-item.active").attr("id");
+    socket.emit("leaveRoom", {roomID: roomID, roomSize: roomSize});
     $("#leave").hide();
     $("#createRoom").show();
   });
@@ -463,8 +485,6 @@ $(document).ready(function() {
     $("#start_game_button").hide();
     var boardTemplate = document.getElementById('gameBoard'),
         gameArea = document.getElementById('game-area'),
-        lobby = document.getElementById('lobby'),
-        chat = document.getElementById('chat'),
         boardClone = boardTemplate.content.cloneNode(true);
         //clear game-area
     while (gameArea.firstChild) {
@@ -472,7 +492,8 @@ $(document).ready(function() {
     }
     gameArea.appendChild(boardClone);
 		for (var i = 0; i < data.playersInRoom.length; i++) {
-      $(".player-score:eq(" + i + ")").find('.glyphicon').append(data.playersInRoom[i].name);
+      $(".player-score:eq(" + i + ")").find('.glyphicon').append(data.playersInRoom[i].name.substring(0, 6));
+      $(".player-score:eq(" + i + ")").find('.glyphicon').css("color", data.playersInRoom[i].tileHex);
 		}
     if(active)  $("#board").removeClass("not-active").addClass("active");
     $("#board").css('background-position', data.randPic+ '% 0');
@@ -480,6 +501,22 @@ $(document).ready(function() {
     /*  while (lobby.firstChild) {
       lobby.removeChild(lobby.firstChild);
     }*/
+    
+    if (data.playersInRoom.length === 2) {
+      $("#first, #second").removeClass("col-md-3");
+      $("#score").addClass("verticalMiddle");
+    }
+    
+    if (data.playersInRoom.length === 3) {
+      $("#score").addClass("verticalMiddle");
+      $("#first").removeClass("col-xs-6 col-md-3").addClass("col-xs-4");
+      $("#second").removeClass("text-right col-xs-6 col-md-3").addClass("col-xs-4 text-center");
+      $("#third").removeClass("text-left col-xs-6 col-md-3 hidden").addClass("col-xs-4 text-right");
+    }
+    if (data.playersInRoom.length === 4) {
+      $("#third, #fourth, #nextLine").removeClass("hidden");
+      $("#nextLine").addClass("clearfix visible-xs-block");
+    }
     $("#lobby").hide();
     $("#score").show();
     $("#game-area").removeClass("before").addClass("after");
@@ -546,8 +583,16 @@ $(document).ready(function() {
   });
 
 $('body').on('click', '#rooms li', function(){
+    $("#listOfPeople").hide();
+    $("#listOfRooms").toggle("slow");
     $("#listOfRooms").text("");
+    
   socket.emit('sendRoomSize', $(this).attr("id"));
+});
+
+$('body').on('click', '#people li', function(){
+    $("#listOfRooms").hide();
+    $("#listOfPeople").toggle("slow");
 });
 
 socket.on("reloadPage", function(data) {
@@ -577,18 +622,20 @@ $('body').on('click', '#listOfRooms li', function(){
       var displayNoRooms = 0;
       $.each(data.rooms, function(id, room) {
         if (room.size === data.s) {
-          var html = "<button id="+id+" data-roomName="+room.name+" class='btn btn-default btn-xs' >Join</button>" + " " + "<button id="+id+" class='removeRoomBtn btn btn-default btn-xs'>Remove</button>";
+          var html = "<button id="+id+" data-roomName="+room.name+" class='btn btn-default btn-xs' >Join</button>"/* + " " + "<button id="+id+" class='removeRoomBtn btn btn-default btn-xs'>Remove</button>"*/;
           $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.size + "</span> " + html + "</li>");
         } else {
           if (displayNoRooms < 1) {
-              $("#listOfRooms").append("<li class=\"list-group-item\">There are other room sizes available!</li>");
-              displayNoRooms++; 
+            $("#msgs").append("<li class=\"text-success\">There are other room sizes available! </li>");
+            displayNoRooms++; 
           }     
         }
       });
     } else {
-      $("#listOfRooms").append("<li class=\"list-group-item\">There are no rooms yet.</li>");
+      $("#listOfRooms").append("<li class=\"list-group-item text-danger\">There are no rooms yet.<br>Press create room button to create your own!</li>");
     }
+    $('#rooms li').removeClass('active');
+    $('#'+data.s).addClass('active');
     
     /*$('#rooms li').click(function () {
     $('#rooms li').not(this).removeClass('active').addClass('inactive');
@@ -603,8 +650,6 @@ $('body').on('click', '#listOfRooms li', function(){
   $('ul.nav.nav-pills li a').click(function() {           
     $(this).parent().addClass('active').siblings().removeClass('active');           
 });*/
-    $('#rooms li').removeClass('active');
-    $('#'+data.s).addClass('active');
   });
   
   socket.on("updateActive", function(data) {
