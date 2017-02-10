@@ -116,6 +116,7 @@ $(document).ready(function() {
   $("#checkAnswer").hide();
   $("#leave").hide();
   $("#start_game_button").hide();
+  $("#listOfRooms").show();
     var device = "desktop";
     if (navigator.userAgent.match(/Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile/i)) {
       device = "mobile";
@@ -201,8 +202,11 @@ $(document).ready(function() {
 	  $("#board").toggleClass("not-active");
 	});  
 	
-	socket.on("disableRoomSizeButtons", function() {
-	  $('.collapse').collapse("hide")
+	socket.on("updateOnCreateOrJoin", function() {
+    $("#createRoom").hide();
+    $("#listOfRooms").hide();
+    $("#leave").show();
+	  $('.collapse').collapse("hide");
 	  $('#rooms li').addClass('disabled');
     $("#rooms li.disabled a").click(function() {
       return false;
@@ -247,7 +251,7 @@ $(document).ready(function() {
         $.each(data.rooms, function(id, room) {
           if (room.size === data.s) {
             var html = "<button id="+id+" data-roomName="+room.name+" class='btn btn-default btn-xs' >Join</button>"/* + " " + "<button id="+id+" class='removeRoomBtn btn btn-default btn-xs'>Remove</button>"*/;
-            $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.size + "</span> " + html + "</li>");
+            $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.size + "</span> " + html + " " + room.status + "</li>");
           } else {
             if (displayNoRooms < 1) {
                 $("#listOfRooms").append("<li class=\"list-group-item\">There are other room sizes available!</li>");
@@ -256,7 +260,7 @@ $(document).ready(function() {
           }
         });
       } else {
-          $("#listOfRooms").append("<li class=\"list-group-item\">There are no rooms yet.</li>");
+          $("#listOfRooms").append("<li class=\"list-group-item text-danger\">There are no rooms yet. Press create room button to create your own!</li>");
       }
     }
 	});
@@ -272,7 +276,7 @@ $(document).ready(function() {
         $.each(data.rooms, function(id, room) {
           if (room.size === data.s) {
             var html = "<button id="+id+" data-roomName="+room.name+" class='btn btn-default btn-xs' >Join</button>"/* + " " + "<button id="+id+" class='removeRoomBtn btn btn-default btn-xs'>Remove</button>"*/;
-            $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.size + "</span> " + html + "</li>");
+            $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.size + "</span> " + html + " " + room.status + "</li>");
           } else {
             if (displayNoRooms < 1) {
                 $("#listOfRooms").append("<li class=\"list-group-item\">There are other room sizes available!</li>");
@@ -281,7 +285,29 @@ $(document).ready(function() {
           }
         });
       } else {
-          $("#listOfRooms").append("<li class=\"list-group-item\">There are no rooms yet.</li>");
+          $("#listOfRooms").append("<li class=\"list-group-item text-danger\">There are no rooms yet. Press create room button to create your own!</li>");
+      }
+    }
+	});
+  
+  socket.on("updatePlayerJoinOrLeaveRoom", function(data) {
+    if ($(".list-group-item.active").attr("id") === data.s) {
+      $("#listOfRooms").text("");
+      if (!jQuery.isEmptyObject(data.rooms)) { 
+        var displayNoRooms = 0;
+        $.each(data.rooms, function(id, room) {
+          if (room.size === data.s) {
+            var html = "<button id="+id+" data-roomName="+room.name+" class='btn btn-default btn-xs' >Join</button>"/* + " " + "<button id="+id+" class='removeRoomBtn btn btn-default btn-xs'>Remove</button>"*/;
+            $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.size + "</span> " + html + " " + room.status + "</li>");
+          } else {
+            if (displayNoRooms < 1) {
+                $("#listOfRooms").append("<li class=\"list-group-item\">There are other room sizes available!</li>");
+                displayNoRooms++; 
+            }     
+          }
+        });
+      } else {
+          $("#listOfRooms").append("<li class=\"list-group-item text-danger\">There are no rooms yet. Press create room button to create your own!</li>");
       }
     }
 	});
@@ -329,6 +355,10 @@ $(document).ready(function() {
     $("#leave").hide();
     $("#createRoom").show();
   });
+  
+socket.on('redirect', function(destination) {
+    window.location.href = destination;
+});
 
   $("#people").on('click', '.whisper', function() {
     var name = $(this).siblings("span").text();
@@ -521,6 +551,9 @@ $(document).ready(function() {
     $("#score").show();
     $("#game-area").removeClass("before").addClass("after");
     $("#chat").removeClass("before").addClass("after");
+    $("#board").css("visibility", "visible");
+    $("#board").css("left", "0");
+    
   });
   
   socket.on("enableCheckAnswerButton", function() {
@@ -623,7 +656,7 @@ $('body').on('click', '#listOfRooms li', function(){
       $.each(data.rooms, function(id, room) {
         if (room.size === data.s) {
           var html = "<button id="+id+" data-roomName="+room.name+" class='btn btn-default btn-xs' >Join</button>"/* + " " + "<button id="+id+" class='removeRoomBtn btn btn-default btn-xs'>Remove</button>"*/;
-          $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.size + "</span> " + html + "</li>");
+          $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.size + "</span> " + html + " " + room.status + "</li>");
         } else {
           if (displayNoRooms < 1) {
             $("#msgs").append("<li class=\"text-success\">There are other room sizes available! </li>");
@@ -632,7 +665,7 @@ $('body').on('click', '#listOfRooms li', function(){
         }
       });
     } else {
-      $("#listOfRooms").append("<li class=\"list-group-item text-danger\">There are no rooms yet.<br>Press create room button to create your own!</li>");
+      $("#listOfRooms").append("<li class=\"list-group-item text-danger\">There are no rooms yet. Press create room button to create your own!</li>");
     }
     $('#rooms li').removeClass('active');
     $('#'+data.s).addClass('active');
@@ -666,13 +699,9 @@ $('body').on('click', '#listOfRooms li', function(){
     $("#start_game_button").show();
   });
   
-  socket.on("hideCreateRoomButton", function(data) {
-    $("#createRoom").hide();
+  socket.on("hideStartButton", function(data) {
+    $("#start_game_button").hide();
   });
-  
-  socket.on("showLeaveButton", function(data) {
-    $("#leave").show();
-  }); 
       
   socket.on("disableBoard", function(data) {
     $("#board").addClass("not-active"); 

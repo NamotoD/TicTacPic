@@ -335,7 +335,8 @@ a href
 #navigationBody
 {
     top: 10%;
-    height: 100%;
+    height: calc(100% - 39px);
+    width: 100%;
 }
 
 #Overview, #Rules
@@ -343,6 +344,7 @@ a href
     position: absolute;
     height: calc(100% - 39px);
     background-color: #999;
+    width: 100%;
 }
 
 #overviewContent, #rulesContent
@@ -373,9 +375,30 @@ a href
     cursor: default;
 }
 
+#Lobby
+{
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    
+}
+
 #listOfRooms, #listOfPeople
 {
-    height: 100% !important;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: -17px;
+    left: 0;
+    overflow-y: scroll;
+}
+
+#listOfRooms .list-group-item, #listOfPeople .list-group-item
+{
+    height: 25%;
+    width: calc(100% - 17px);
+    vertical-align: middle;
 }
 
 /*#lobby
@@ -427,6 +450,8 @@ a href
     background-image: url("../images/background/animalsSpriteNew.jpg");
     background-size: 3700%;
     display:block;
+    visibility: hidden;
+    left: -999em;
     outline-color: black;
     outline-style: solid;
 }
@@ -897,6 +922,12 @@ a href
     padding-right: 1%;
 }
 
+#listOfRooms .list-group-item, #listOfPeople .list-group-item
+{
+    height: 10%;
+    width: 100%;
+}
+
 .pagerPage
 {
     display: block;
@@ -984,7 +1015,7 @@ a href
 
 #Overview, #Rules
 {
-    height: calc(100% - 40px);
+    height: calc(100% - 39px);
 }
 
 #score 
