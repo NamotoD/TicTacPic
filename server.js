@@ -20,6 +20,8 @@ var express = require('express')
     passportSocketIo = require("passport.socketio")
 , configDB = require('./config/database.js');
 
+var Stopwatch = require('timer-stopwatch');
+
 app.set('socketio', io);
 
 app.set('port', process.env.PORT || 8080);
@@ -140,6 +142,7 @@ function purge(s, action) {
 		if (s.id === room.owner) { //user in room and owns room
 			if (action === "disconnect") {
 				io.sockets.in(s.room).emit("update", "The owner (" +people[s.id].name + ") has left the server. The room is removed and you have been disconnected from it as well.");
+				io.sockets.in(s.room).emit("redirect", "/room");
 				var socketids = [];
 				for (var i=0; i<sockets.length; i++) {
 					socketids.push(sockets[i].id);
@@ -155,13 +158,15 @@ function purge(s, action) {
 				}
 				room.people = _.without(room.people, s.id); //remove people from the room:people{}collection
 				delete rooms[people[s.id].owns]; //delete the room
-				updateAfterOwnerDisrupt(s, size);
-				delete people[s.id]; //delete user from people collection
 				delete chatHistory[room.name]; //delete the chat history
 				var o = _.findWhere(sockets, {'id': s.id});
 				sockets = _.without(sockets, o);
+				updateAfterOwnerDisrupt(s, size);
+				room.removePerson(s.id);
+				delete people[s.id]; //delete user from people collection
 			} else if (action === "removeRoom") { //room owner removes room
 				io.sockets.in(s.room).emit("update", "The owner (" +people[s.id].name + ") has removed the room. The room is removed and you have been disconnected from it as well.");
+				io.sockets.in(s.room).emit("redirect", "/room");
 				socketids = [];
 				for (var i=0; i<sockets.length; i++) {
 					socketids.push(sockets[i].id);
@@ -180,8 +185,10 @@ function purge(s, action) {
 				room.people = _.without(room.people, s.id); //remove people from the room:people{}collection
 				delete chatHistory[room.name]; //delete the chat history// sending to all clients except sender
 				updateAfterOwnerDisrupt(s, size);
+				room.removePerson(s.id);
 			} else if (action === "leaveRoom") { //room owner leaves room
 				io.sockets.in(s.room).emit("update", "The owner (" +people[s.id].name + ") has left the room. The room is removed and you have been disconnected from it as well.");
+				io.sockets.in(s.room).emit("redirect", "/room");
 				socketids = [];
 				for (var i=0; i<sockets.length; i++) {
 					socketids.push(sockets[i].id);
@@ -200,14 +207,23 @@ function purge(s, action) {
 				room.people = _.without(room.people, s.id); //remove people from the room:people{}collection
 				delete chatHistory[room.name]; //delete the chat history// sending to all clients except sender
 				updateAfterOwnerDisrupt(s, size);
+				room.removePerson(s.id);
 			}
 		} else {//user in room but does not own room
 			if (action === "disconnect") {
 				io.sockets.emit("update", people[s.id].name + " has disconnected from the server.");
+				s.emit("redirect", "/room");
+				updateAfterPlayerDisrupt(s, size);
 				if (_.contains((room.people), s.id)) {
-					var personIndex = room.people.indexOf(s.id);
-					room.people.splice(personIndex, 1);
+					room.removePerson(s.id);
 					s.leave(room.name);
+				}
+				if(room.getPeople().length < 2) {
+					for(var key in people) {
+					    if(people[key].owns !== null & _.contains(room.getPeople(), people[key].id)) {
+					      io.sockets.socket(key).emit("hideStartButton");
+					    }
+					}
 				}
 				delete people[s.id];
 				lobbyUpdate (true, false, size, s);
@@ -217,15 +233,23 @@ function purge(s, action) {
 			} else if (action === "removeRoom") {
 				s.emit("update", "Only the owner can remove a room.");
 			} else if (action === "leaveRoom") {
+				s.emit("redirect", "/room");
+				updateAfterPlayerDisrupt(s, size);
 				if (_.contains((room.people), s.id)) {
-					personIndex = room.people.indexOf(s.id);
-					room.people.splice(personIndex, 1);
+					room.removePerson(s.id);
 					people[s.id].inroom = null;
 					io.sockets.emit("update", people[s.id].name + " has left the room.");
 					io.sockets.in(s.room).emit("disableBoard");
 					s.leave(room.name);
 					lobbyUpdate (true, false, size, s);
 					s.emit("updateActive", {s: size});
+				}
+				if(room.getPeople().length < 2) {
+					for(var key in people) {
+					    if(people[key].owns !== null & _.contains(room.getPeople(), people[key].id)) {
+					      io.sockets.socket(key).emit("hideStartButton");
+					    }
+					}
 				}
 			}
 		}	
@@ -282,6 +306,20 @@ function updateAfterOwnerDisrupt(s, size){
 			});
 }
 
+function updateAfterPlayerDisrupt(s, size){								
+			// load up the user model
+			var User  = require('./app/models/user');// get the user
+			User.findById(people[s.id].databaseID, function(err, user) {
+				if (err) throw err;
+					console.log(user); // show the one user
+			  
+				size  = user.local.size;
+				var sizeRooms = getSizeRooms(rooms);
+				s.broadcast.emit("updatePlayerJoinOrLeaveRoom", {rooms: rooms, count: sizeRooms, s: size});
+				s.emit("updateActive", {s: size});
+			});
+}
+
 function getBadgeIndex(index, size){
 	
 	if (size === 'Small')     	{
@@ -324,8 +362,7 @@ io.sockets.on("connection", function (socket) {
 		if (people[socket.id].inroom) {
 			socket.emit("update", "You are in a room. Please leave it first to create your own.");
 		} else if (!people[socket.id].owns) {
-			socket.emit("hideCreateRoomButton");
-			socket.emit("showLeaveButton");  
+			socket.emit("updateOnCreateOrJoin");  
 			var id = uuid.v4();
 			socket.emit("sendRoomID", {id: id, active: true});
 							
@@ -353,8 +390,8 @@ io.sockets.on("connection", function (socket) {
 				index = getBadgeIndex(index, size);
 				var sizeRooms = getSizeRooms(rooms);
 				io.sockets.emit("updateCreateRoom", {rooms: rooms, count: sizeRooms, s: size, index: index});
-				socket.emit("disableRoomSizeButtons");
 				console.log("socket room: " + socket.room);
+		console.log("New room id" + people[socket.id].inroom);
 			});
 		} else {
 			socket.emit("update", "You have already created a room.");
@@ -363,6 +400,7 @@ io.sockets.on("connection", function (socket) {
 
 	socket.on("joinRoom", function(data) {
 		console.log(data.id);
+		console.log(people[socket.id].inroom);
 		var room = rooms[data.id];
 		if (room.isAvailable()) {
 			if (typeof people[socket.id] !== "undefined") {
@@ -375,23 +413,34 @@ io.sockets.on("connection", function (socket) {
 						if (people[socket.id].inroom !== null) {
 					    		socket.emit("update", "You are already in a room ("+rooms[people[socket.id].inroom].name+"), please leave it first to join another room.");
 					    	} else {
-							socket.emit("hideCreateRoomButton");
-							socket.emit("showLeaveButton");
-							socket.emit("disableRoomSizeButtons");
-							var tile = room.getRandomTile(); 
-					console.log(tile); // show the one user
+							socket.emit("updateOnCreateOrJoin");
+							var tile = room.getRandomTile();
 							playerSetup(room, socket.id, data.id, tile, null);
 							room.checkAvailability();
-							console.log(room.getPeople().length);
 							io.sockets.in(socket.room).emit("update", people[socket.id].name + " has connected to " + room.name + " room.");
-							socket.emit("update", "Welcome to " + room.name + ".");
+							socket.emit("update", "Welcome to " + room.name + ". You can start chatting now(note: Only the room owner can start the game!).");
 							socket.emit("sendRoomID", {id: data.id});
-							io.sockets.in(socket.room).emit("showStartButton");
-							console.log("socket room: " + socket.room);
+							for(var key in people) {
+							    if(people[key].owns !== null & _.contains(room.getPeople(), people[key].id)) {
+							      io.sockets.socket(key).emit("showStartButton");
+							    }
+							}
 							var keys = _.keys(chatHistory);
 							if (_.contains(keys, socket.room)) {
 								socket.emit("history", chatHistory[socket.room]);
 							}
+											
+							// load up the user model
+							var size  = '',
+							User  = require('./app/models/user');// get the user
+							User.findById(people[socket.id].databaseID, function(err, user) {
+								if (err) throw err;
+									console.log(user); // show the one user
+							  
+								size  = user.local.size;
+								var sizeRooms = getSizeRooms(rooms);
+								io.sockets.emit("updatePlayerJoinOrLeaveRoom", {rooms: rooms, count: sizeRooms, s: size});
+							});
 						}
 					}
 				}
@@ -421,6 +470,7 @@ io.sockets.on("connection", function (socket) {
 
 	socket.on("leaveRoom", function(data) {
 		var room = rooms[data.roomID];
+		room.returnRandomTile([people[socket.id].tile, people[socket.id].tileHex]);
 		if (room)
 			purge(socket, "leaveRoom");
 	});
@@ -627,7 +677,6 @@ io.sockets.on("connection", function (socket) {
 		people[socketId].tileHex = tile[1];
 		people[socketId].score = 0;
 		people[socketId].attempts = 3;
-		people[socketId].canAnswer = false;
 		people[socketId].active = false;
 		room.addPerson(socketId);
 		socket.room = name || room.name;
@@ -639,9 +688,7 @@ io.sockets.on("connection", function (socket) {
 		data.score = 0;
 		room.checkMove(data);
 		people[socket.id].score += data.score;
-		if(data.score > 0) {
-			people[socket.id].canAnswer = true;
-		}
+		
 		data.score = people[socket.id].score;
 		var index = room.people.indexOf(socket.id);
 					console.log("Player's index is: " + index ); 
@@ -657,16 +704,24 @@ io.sockets.on("connection", function (socket) {
 		} else {
 			socketID = room.people[data.index + 1];
 		}
+					
+		if(room.canAnswer & people[socket.id].attempts > 0) {
+			socket.emit("enableCheckAnswerButton");	
+			var timer = new Stopwatch(5000);
+			// Fires when the timer is done
+			timer.onDone(function(){
+				io.sockets.socket(socketID).emit("toggleActive");
+				socket.emit("disableCheckAnswerButton");
+			    console.log('Timer is complete');
+			});
+			timer.start();
+		} else {
+			io.sockets.socket(socketID).emit("toggleActive");
+		}
+		room.canAnswer = false;
 		/*var last_element = room.people[room.people.length - 1];
 		socketID = room.people[data.index + 1];
 					console.log("Player's socketID is: " + socketID ); */
-		io.sockets.socket(socketID).emit("toggleActive");
-		if(people[socket.id].canAnswer) {
-			socket.emit("enableCheckAnswerButton");	
-		}
-		if(people[socket.id].attempts<1) {
-			socket.emit("disableCheckAnswerButton");
-		}
 	    io.sockets.in(socket.room).emit('sendScoresToClients', data);
 	    socket.emit("setTransparent", data);
 	    socket.broadcast.to(socket.room).emit("setUncovered", data);

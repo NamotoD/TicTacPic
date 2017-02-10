@@ -7,6 +7,7 @@ function Room(name, id, owner, boardSize) {
     this.size = boardSize;
     this.s = this.convertSizeToNum(boardSize);
     this.boardRange = this.s * this.s;
+		this.canAnswer = false;
     this.colors = [['violet', '#835A96'], ['red', '#F13836'], ['yellow', '#FFCC00'], ['green', '#9FCE30'], ['blue', '#4BBFF0']];
     this.peopleLimit = (this.s === 12) ? 4 : 2;
     this.status = "available";
@@ -51,6 +52,10 @@ Room.prototype.getRandomTile = function () {
   return this.colors.pop();
 };
 
+Room.prototype.returnRandomTile = function (tile) {
+  return this.colors.push(tile);
+};
+
 Room.prototype.setUpPlayingBoard = function () {
 	for (var i = 0; i < this.boardRange; i++){
 	  var line = Math.floor(i/this.s);
@@ -83,15 +88,27 @@ Room.prototype.addPerson = function(personID) {
   }
 };
 
-Room.prototype.removePerson = function(person) {
-  var personIndex = -1;
+Room.prototype.removePerson = function(id) {
+  var i = this.people.indexOf(id);
+  if(i != -1) {
+  	this.people.splice(i, 1);
+    if ((this.people.length) < this.peopleLimit) {
+      this.status = "available";
+    }
+  }
+  /*var personIndex = -1;
   for(var i = 0; i < this.people.length; i++){
-    if(this.people[i].id === person.id){
+    if(this.people[i].id === id){
       personIndex = i;
       break;
     }
   }
-  this.people.remove(personIndex);
+  if (personIndex > -1) {
+    this.people.splice(personIndex, 1);
+    if ((this.people.length) < this.peopleLimit) {
+      this.status = "available";
+    }
+  }*/
 };
 
 Room.prototype.getPerson = function(personID) {
@@ -215,29 +232,36 @@ Room.prototype.getScoreOrValidMoves = function(data, buttons, getScore){ // deci
 };
 
 Room.prototype.getScores = function(b, data){//b = 4 buttons surrounding clicked button - each direction
+console.log(this.canAnswer); 
 	if (b[1].iOwn & b[1].check) {
 		if ((b[0].iOwn & b[0].check) & (b[2].iOwn & b[2].check)) {
 		  if (b[3].iOwn & b[3].check) {
 		    data.score += 100,
+		    this.canAnswer = true,
 			  data.winningSets.push([b[0].id, b[1].id, data.clickedButtonId, b[2].id, b[3].id]);
 		  } else {
 			  data.score += 50,
+		    this.canAnswer = true,
 			  data.winningSets.push([b[0].id, b[1].id, data.clickedButtonId, b[2].id]);
 		  }
 		} else if (b[2].iOwn & b[2].check) {
 		  if (b[3].iOwn & b[3].check) {
 	      data.score += 50,
+		    this.canAnswer = true,
 			  data.winningSets.push([b[1].id, data.clickedButtonId, b[2].id, b[3].id]);
 		  } else {
 			  data.score += 20,
+		    this.canAnswer = true,
 			  data.winningSets.push([b[1].id, data.clickedButtonId, b[2].id]);
 		  }
 		} else if (b[0].iOwn & b[0].check) {
-	    data.score += 20;
+	    data.score += 20,
+		  this.canAnswer = true,
       data.winningSets.push([b[0].id, b[1].id, data.clickedButtonId]);
 		}
 	} else if((b[2].iOwn & b[2].check) & (b[3].iOwn & b[3].check)) {
-	  data.score += 20;
+	  data.score += 20,
+		this.canAnswer = true,
     data.winningSets.push([data.clickedButtonId, b[2].id, b[3].id]);
 	}
 };
