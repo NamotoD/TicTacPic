@@ -1,5 +1,5 @@
 {
-  "name": "TIC TAC PIC",
+  "name": "tic_tac_pic",
   "version": "0.0.1",
   "description": "A responsive turn-based multiplayer game",
   "main": "server.js",
@@ -46,7 +46,7 @@
   "author": "Oto Drahonovsky",
   "url": "https://shrouded-forest-38009.herokuapp.com",
   "email": "egonjouda@yahoo.com.au",
-  "license": "free",
+  "license": "SEE LICENSE IN license.md",
   "bugs": {
     "url": "https://shrouded-forest-38009.herokuapp.com"
   },
