@@ -306,6 +306,7 @@ h1 {
     left: 15px;
     width: calc(100% - 30px);
     height: calc(100vw - 30px + 12vh);
+    box-shadow: 0 4px 2px -2px white;
 }
     
 a href
@@ -436,6 +437,41 @@ a href
     height: 12vh;
 }
 
+.blink_me {
+    -webkit-animation-name: blinker;
+    -webkit-animation-duration: 1s;
+    -webkit-animation-timing-function: linear;
+    -webkit-animation-iteration-count: infinite;
+
+    -moz-animation-name: blinker;
+    -moz-animation-duration: 1s;
+    -moz-animation-timing-function: linear;
+    -moz-animation-iteration-count: infinite;
+
+    animation-name: blinker;
+    animation-duration: 1s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
+@-moz-keyframes blinker {  
+    0% { opacity: 1.0; }
+    50% { opacity: 0.0; }
+    100% { opacity: 1.0; }
+}
+
+@-webkit-keyframes blinker {  
+    0% { opacity: 1.0; }
+    50% { opacity: 0.0; }
+    100% { opacity: 1.0; }
+}
+
+@keyframes blinker {  
+    0% { opacity: 1.0; }
+    50% { opacity: 0.0; }
+    100% { opacity: 1.0; }
+}
+
 .verticalMiddle
 {
     display: flex;
@@ -448,10 +484,8 @@ a href
     padding:0;
     width: 100%;
     background-image: url("../images/background/animalsSpriteNew.jpg");
-    background-size: 3700%;
+    background-size: 0;
     display:block;
-    visibility: hidden;
-    left: -999em;
     outline-color: black;
     outline-style: solid;
 }
@@ -560,6 +594,61 @@ a href
     opacity: 0.1;
 }
 
+#warningBoard
+{
+    left:50%;
+    top:50%;
+    -webkit-transform: translate(-50%, -50%);
+    -moz-transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    -o-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    position:absolute;
+    color:yellow;
+    pointer-events: none;
+    background: url('transparent.png');
+    display: none;
+    font-size: 4em;
+}
+
+.flip-clock-divider.seconds,
+.clock ul:nth-child(2),
+.clock ul:nth-child(3),
+.clock ul:nth-child(5),
+.flip-clock-label
+
+{
+    display: none;
+}
+
+.clock
+{
+    zoom: 1.5;
+    -moz-transform: scale(1.5);
+    -webkit-transform: scale(1.5);
+    -ms-transform: scale(1.5);
+    -o-transform: scale(1.5);
+    transform: scale(1.5);
+    display: none;
+    opacity: 0.5;
+    position: relative;
+}
+.flip-clock-wrapper
+{
+    margin: 0px;
+}
+
+#turnPar
+{
+    margin: 0px;
+}
+
+#guessPar
+{
+    margin: 0px;
+    display: none;
+}
+
 .active
 {
     pointer-events: auto;
@@ -609,8 +698,8 @@ a href
 
 #chat.after
 {
-    height: calc(100vh - (12vh + 100vw - 5px));
-    top: calc(12vh + 100vw - 18px);
+    height: calc(100vh - (12vh + 100vw + 1px));
+    top: calc(12vh + 100vw - 11px);
 }
 
 .screen 
@@ -631,6 +720,14 @@ a href
     background-size: 100% 100%;
     max-width: 120px;
     
+}
+
+.scrollable-menu {
+    height: 300px;
+    width: 500px;
+    overflow: hidden;
+    overflow-y: scroll;
+    padding-right: 20px;
 }
 
 .buttons
@@ -955,8 +1052,8 @@ a href
 
 #chat.after
 {
-    height: calc(100vh - (6vh + 100vw - 5px));
-    top: calc(100vw - 16px + 6vh);
+    height: calc(100vh - (6vh + 100vw + 1px));
+    top: calc(100vw - 10px + 6vh);
 }
 
 #chatForm
@@ -1045,7 +1142,7 @@ a href
     top: calc(0vh + 13px);
     height: calc(100vh - 26px);
     width: calc(100vw - 94vh + 3px);
-    left: calc(94vh - 16px);
+    left: calc(94vh - 12px);
 }
 }
 

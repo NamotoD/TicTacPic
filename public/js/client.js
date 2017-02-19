@@ -72,7 +72,25 @@ function timeFormat(msTime) {
     zeroPad(d.getSeconds(), 2) + " ";
 }
 
+var clock1,
+clock2,
+setTimeout1,
+setTimeout2,
+setTimeout3,
+setTimeout4,
+countdown1,
+countdown2;
+
+
 $(document).ready(function() {
+    $('.dropup').on('show.bs.dropdown', function(){
+    clearTimeout(setTimeout3);
+    setTimeout4 = setTimeout(function() { $("#warningBoard").hide();
+                            $("#guessPar").hide();
+                            $("#checkAnswer").hide();
+                            socket.emit('ChangeToNextPlayer');
+    }, 10000);// show "Guess image!" button for 5 seconds
+    });
   
   $('#overviewPager').bootpag({
     total: 4,
@@ -198,7 +216,6 @@ $(document).ready(function() {
   
   
 	socket.on("toggleActive", function() {
-    //alert("toggleActive works!");
 	  $("#board").toggleClass("not-active");
 	});  
 	
@@ -312,31 +329,6 @@ $(document).ready(function() {
     }
 	});
   
-  
-  $("#checkAnswerBtn").click(function() {
-    var correctAnswer = false;
-    var answer = $("#answerToCheck").val();
-    socket.emit("checkAnswer", answer, function(data) {
-      correctAnswer = data.result;
-      data.score = 0;
-      data.decreaseAttempts = true;
-
-       if (correctAnswer) {
-          data.score += 100;
-          data.decreaseAttempts = false;
-          $("#errors").empty();
-          $("#errors").hide();
-          
-        } else {data.score -= 50;
-          $("#errors").empty();
-          $("#errors").show();
-          $("#errors").append("<i>" + answer + "</i> is a wrong answer. You re losing 50 points." +data.attempts+ "attempts left!"); 
-
-        }
-        socket.emit("adjustScore", data);
-    });
-  });
-  
   $("#start_game_button").click(function() {
     socket.emit("startGame");
   });
@@ -367,6 +359,12 @@ socket.on('redirect', function(destination) {
   });
   
   $(document).on('click', '.col', function() {
+    $(".clock").hide();
+    $("#warningBoard").hide();
+    clearTimeout(setTimeout1);
+    clearTimeout(setTimeout2);
+    clearTimeout(countdown1);
+    clearTimeout(countdown2);
     // the tapped button id
     var clickedButtonId = parseInt(this.id);
     if($("#" + clickedButtonId).parent('div').hasClass("Default")) {
@@ -382,14 +380,44 @@ socket.on('redirect', function(destination) {
       alert("Choose another button!");
     }
   });
-/*
   
-  socket.on("sendScoresToClients", function(data) {
-    $(".player-score:eq( 0 )").find('.badge').text( data.myCreatorScore );
-    $(".player-score:eq( 1 )").find('.badge').text( data.myJoinerScore );
-    $("#" + data.clickedButtonId).parent('div').removeClass("Default").addClass(data.myPlayerTile);
-  }); 
-*/   
+  socket.on("removeBlinking", function() {
+    $('*[data-index=1]').removeClass('blink_me');
+    $('*[data-index=2]').removeClass('blink_me');
+    $('*[data-index=3]').removeClass('blink_me');
+    $('*[data-index=4]').removeClass('blink_me');
+  });
+  
+  socket.on("showActiveToOthers", function(data) {
+    $('*[data-index=' + (data.NextPlayerToMove).toString() + ']').addClass('blink_me');
+  });
+  
+  socket.on("showActiveToActive", function(data) { // player on turn
+    $("#warningBoard").show();
+  	$("#turnPar").show();
+      setTimeout(function() { $("#warningBoard").hide();
+  	                          $("#turnPar").hide();}, 2000);// show your turn! for 2 seconds
+    		
+      countdown2 = setTimeout(function(){  $("#warningBoard").show(); 
+                              $(".clock").show();
+        clock2 = $('.clock').FlipClock(5, {
+      		        clockFace: 'MinuteCounter',
+      		        countdown: true
+      	});
+        setTimeout(function() {
+      		setInterval(function() {
+      			clock2.increment();
+      		}, 1000);
+      	});
+      }, 11000);
+      
+      setTimeout2 = setTimeout(function() { $("#board").addClass("not-active"); 
+      		        		        $('.clock').css("display", "none");
+                              socket.emit('ChangeToNextPlayer');
+        
+      }, 16000);// show "Change players!"
+  });
+  
   socket.on("sendScoresToClients", function(data) {
     $(".player-score:eq(" + data.index + ")").find('.badge').text( data.score );
     $("#" + data.clickedButtonId).parent('div').removeClass("Default").addClass(data.myPlayerTile);
@@ -525,7 +553,35 @@ socket.on('redirect', function(destination) {
       $(".player-score:eq(" + i + ")").find('.glyphicon').append(data.playersInRoom[i].name.substring(0, 6));
       $(".player-score:eq(" + i + ")").find('.glyphicon').css("color", data.playersInRoom[i].tileHex);
 		}
-    if(active)  $("#board").removeClass("not-active").addClass("active");
+    if(active)  {
+      $("#board").removeClass("not-active").addClass("active");
+      
+      $("#warningBoard").show();
+      setTimeout(function() { $("#warningBoard").hide();
+  	                          $("#turnPar").hide();}, 2000);// show "your turn!" for 2 seconds
+    		
+      countdown1 = setTimeout(function(){  $("#warningBoard").show(); 
+                              $(".clock").show();
+        clock1 = $('.clock').FlipClock(5, {
+      		        clockFace: 'MinuteCounter',
+      		        countdown: true
+      	});
+        setTimeout(function() {
+      		setInterval(function() {
+      			clock1.increment();
+      		}, 1000);
+      	});
+      }, 11000);
+      
+      setTimeout1 = setTimeout(function() { $("#board").addClass("not-active"); 
+      		        		        $('.clock').css("display", "none");
+                              socket.emit('ChangeToNextPlayer');
+        
+      }, 16000);// show "Change players!"
+    } else {
+      $('#first').addClass('blink_me');
+    }
+    
     $("#board").css('background-position', data.randPic+ '% 0');
     
     /*  while (lobby.firstChild) {
@@ -551,18 +607,60 @@ socket.on('redirect', function(destination) {
     $("#score").show();
     $("#game-area").removeClass("before").addClass("after");
     $("#chat").removeClass("before").addClass("after");
-    $("#board").css("visibility", "visible");
-    $("#board").css("left", "0");
+		
+		var $pictureChoice = $("#picture-choice");
+		$pictureChoice.empty();
+		$.each(data.picNames, function(index, value) {
+			$pictureChoice.append("<li><a href=\"#\">" + value + "</a></li>");
+		});
     
   });
   
-  socket.on("enableCheckAnswerButton", function() {
+  socket.on("unhideBackground", function() {
+    $("#board").css("background-size", "3700%");
+  });
+  
+  socket.on("enableCheckAnswerButton", function(data) {
     $("#checkAnswer").show();
+    $("#guessPar").show();
+    $("#warningBoard").show();
+    setTimeout3 = setTimeout(function() { $("#warningBoard").hide();
+                            $("#guessPar").hide();
+                            $("#checkAnswer").hide();
+                            socket.emit('ChangeToNextPlayer');
+    }, 5000);// show "Guess image!" button for 5 seconds
   });
   
   socket.on("disableCheckAnswerButton", function() {
     $("#checkAnswer").hide();
   });
+  
+$('body').on('click', '#picture-choice li', function(){
+  clearTimeout(setTimeout4);
+    $("#guessPar").hide();
+    
+    var correctAnswer = false;
+    var answer = $(this).text();
+    socket.emit("checkAnswer", answer, function(data) {
+      correctAnswer = data.result;
+      data.score = 0;
+      data.decreaseAttempts = true;
+
+       if (correctAnswer) {
+          data.score += 100;
+          data.decreaseAttempts = false;
+          $("#errors").empty();
+          $("#errors").hide();
+          
+        } else {data.score -= 50;
+          $("#errors").empty();
+          $("#errors").show();
+          $("#errors").append("<i>" + answer + "</i> is a wrong answer. You re losing 50 points." +data.attempts+ "attempts left!"); 
+
+        }
+        socket.emit("adjustScore", data);
+    });
+});
   
   socket.on("update-people", function(data){
     //var peopleOnline = [];
@@ -670,19 +768,6 @@ $('body').on('click', '#listOfRooms li', function(){
     $('#rooms li').removeClass('active');
     $('#'+data.s).addClass('active');
     
-    /*$('#rooms li').click(function () {
-    $('#rooms li').not(this).removeClass('active').addClass('inactive');
-    $(this).removeClass('inactive').addClass('active');
-});
-    
-   $(document).on('click', '#rooms li', function(e) {
-       $("#rooms li").removeClass("active");
-       $(this).addClass("active");
-       e.preventDefault();
-   });
-  $('ul.nav.nav-pills li a').click(function() {           
-    $(this).parent().addClass('active').siblings().removeClass('active');           
-});*/
   });
   
   socket.on("updateActive", function(data) {
@@ -693,6 +778,16 @@ $('body').on('click', '#listOfRooms li', function(){
   socket.on("sendRoomID", function(data) {
     myRoomID = data.id;
     active = data.active;
+  });
+
+  socket.on("changeActiveBoard", function(data) {
+    active = data.active;
+    $("#board").removeClass("active").addClass("not-active");
+    clearTimeout(setTimeout1);
+    clearTimeout(setTimeout2);
+    clearTimeout(setTimeout3);
+    clearTimeout(countdown1);
+    clearTimeout(countdown2);
   });
   
   socket.on("showStartButton", function(data) {

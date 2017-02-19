@@ -15,7 +15,17 @@
             <a href="#" id="start_game_button" class="btn btn-info buttons" role="button">Start</a>
             <a href="#" id="createRoom" class="btn btn-info buttons" name="createRoom">Create room</a>
             <a href="#" id="leave" class="btn btn-info buttons" name="leave">Leave room</a>
-            <a href="#" id="checkAnswer" class="btn btn-info buttons" name="checkAnswer" data-toggle="modal" data-target="#checkAnswerModal">Check answer</a>
+            <!-- <a href="#" id="checkAnswer" class="btn btn-info buttons" name="checkAnswer" data-toggle="modal" data-target="#checkAnswerModal">Check answer</a> -->
+            <div id="checkAnswer" class="btn-group dropup">
+              <button type="button" class="btn btn-default">Dropup</button>
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="caret"></span>
+                <span class="sr-only">Toggle Dropdown</span>
+              </button>
+              <ul id="picture-choice" class="dropdown-menu scrollable-menu">
+                <!-- Dropdown menu links -->
+              </ul>
+            </div>
         </div>
     </div>
     <div class="row-fluid no-gutter-at-all">

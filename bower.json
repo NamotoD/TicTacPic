@@ -10,9 +10,9 @@
     "bootpag": "^1.0.7"
   },
   "directory": "components",
-  "homepage": "https://github.com/tamaspiros/advanced-chat",
+  "homepage": "https://shrouded-forest-38009.herokuapp.com",
   "authors": [
-    "Tamas Piros <me@tamas.io>"
+    "Oto Drahonovsky <egonjouda@yahoo.com.au>"
   ],
   "main": "server.js",
   "moduleType": [
