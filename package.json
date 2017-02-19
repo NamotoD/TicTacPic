@@ -29,7 +29,6 @@
     "passport-local": "^1.0.0",
     "passport-twitter": "^1.0.4",
     "passport.socketio": "^3.6.2",
-    "shrinkwrap": "0.0.3",
     "socket.io": "^0.9.16",
     "underscore": "^1.5.2"
   },
