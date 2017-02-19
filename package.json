@@ -1,7 +1,7 @@
 {
-  "name": "chat",
+  "name": "TIC TAC PIC",
   "version": "0.0.1",
-  "description": "node.js/socket.io chat app",
+  "description": "A responsive turn-based multiplayer game",
   "main": "server.js",
   "cacheDirectories": [
     "node_modules",
@@ -31,7 +31,6 @@
     "passport.socketio": "^3.6.2",
     "shrinkwrap": "0.0.3",
     "socket.io": "^0.9.16",
-    "timer-stopwatch": "^0.2.0",
     "underscore": "^1.5.2"
   },
   "devDependencies": {
@@ -42,14 +41,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/satrapade/advanced-chat.git"
+    "url": "https://git.heroku.com/shrouded-forest-38009.git"
   },
-  "author": "Tamas Piros",
-  "url": "http://tamas.io",
-  "email": "me@tamas.io",
+  "author": "Oto Drahonovsky",
+  "url": "https://shrouded-forest-38009.herokuapp.com",
+  "email": "egonjouda@yahoo.com.au",
   "license": "free",
   "bugs": {
-    "url": "https://github.com/satrapade/advanced-chat/issues"
+    "url": "https://shrouded-forest-38009.herokuapp.com"
   },
-  "homepage": "https://github.com/satrapade/advanced-chat"
+  "homepage": "https://shrouded-forest-38009.herokuapp.com"
 }

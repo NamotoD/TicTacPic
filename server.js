@@ -20,8 +20,6 @@ var express = require('express')
     passportSocketIo = require("passport.socketio")
 , configDB = require('./config/database.js');
 
-var Stopwatch = require('timer-stopwatch');
-
 app.set('socketio', io);
 
 app.set('port', process.env.PORT || 8080);
@@ -233,6 +231,7 @@ function purge(s, action) {
 			} else if (action === "removeRoom") {
 				s.emit("update", "Only the owner can remove a room.");
 			} else if (action === "leaveRoom") {
+				room.returnRandomTile([people[s.id].tile, people[s.id].tileHex]);
 				s.emit("redirect", "/room");
 				updateAfterPlayerDisrupt(s, size);
 				if (_.contains((room.people), s.id)) {
@@ -323,13 +322,10 @@ function updateAfterPlayerDisrupt(s, size){
 function getBadgeIndex(index, size){
 	
 	if (size === 'Small')     	{
-		console.log('size is 4: ' + size);
     	index = 2;      	} 
 	else if (size === 'Medium')	{
-		console.log('size is 6: ' + size);
     	index = 1;          }
 	else                    {
-		console.log('size is 12: ' + size);
     	index = 0;      }
     return index;
 }
@@ -381,7 +377,6 @@ io.sockets.on("connection", function (socket) {
 				people[socket.id].owns = id;
 				room.shuffleColors();
 				var tile = room.getRandomTile();
-					console.log(tile); // show the one user
 				playerSetup(room, socket.id, id, tile, name);
 				room.setRandPic();
 				socket.emit("update", "Welcome to " + room.name + ".");
@@ -462,7 +457,8 @@ io.sockets.on("connection", function (socket) {
 		}
 		var data = {
 			playersInRoom:	playersInRoom,
-			randPic:		room.getRandPic()
+			randPic:		room.getRandPic(),
+			picNames:		room.getPicNames()
 		};
 		io.sockets.in(socket.room).emit("showBoard", data);
     	io.sockets.in(socket.room).emit('update', 'New game started!');
@@ -470,7 +466,6 @@ io.sockets.on("connection", function (socket) {
 
 	socket.on("leaveRoom", function(data) {
 		var room = rooms[data.roomID];
-		room.returnRandomTile([people[socket.id].tile, people[socket.id].tileHex]);
 		if (room)
 			purge(socket, "leaveRoom");
 	});
@@ -616,18 +611,7 @@ io.sockets.on("connection", function (socket) {
 				}
 			});
 	});
-	/*
-	
-	socket.on("adjustScore", function(data) {
-		var room = getRoom();
-		people[socket.id].score += data.score;
-		if (data.decreaseAttempts) {
-			people[socket.id].attempts -= 1;
-		}
-		data.myCreatorScore = people[room.people[0]].score;
-		data.myJoinerScore = people[room.people[1]].score;
-	    io.sockets.in(socket.room).emit('sendScoresToClients', data);
-	});	*/
+
 	socket.on("adjustScore", function(data) {
         var correctAnswer = false;
 		var room = getRoom();
@@ -635,11 +619,9 @@ io.sockets.on("connection", function (socket) {
 		if (data.decreaseAttempts) {
 			people[socket.id].attempts -= 1;
 		}
-		var index = room.people.indexOf(socket.id);
-					console.log("Player's index is: " + index ); 
+		var index = room.people.indexOf(socket.id); 
 		data.index = index;
 		data.score = people[socket.id].score;
-					console.log("Player's score is: " + data.score );
 	    io.sockets.in(socket.room).emit('sendScoresToClients', data);
         correctAnswer = data.result;
         if (correctAnswer)
@@ -662,10 +644,45 @@ io.sockets.on("connection", function (socket) {
 		validateMoves(room, data);
 	});
 	
+	var getNextPlayerToMove = function (room, data){
+		data.index = room.people.indexOf(socket.id);
+	    io.sockets.in(socket.room).emit('removeBlinking');
+	    var players = room.getPeople();
+		if (socket.id === players[players.length - 1]) { // start new cycle if last player..
+			data.socketID = players[0];
+			data.NextPlayerToMove = 1;
+		} else {
+			data.socketID = players[data.index + 1]; // .. or chose next player
+			data.NextPlayerToMove = data.index + 2;
+		}
+		
+		for (var i=0; i<players.length; i++) {
+			if (players[i] !== data.socketID) {
+				io.sockets.socket(players[i]).emit("showActiveToOthers", data);
+			} else {
+				io.sockets.socket(players[i]).emit("showActiveToActive", data);
+			}
+		}
+		
+	};
+	
+	socket.on("ChangeActivePlayer", function(data) {
+			io.sockets.socket(data.socketID).emit("toggleActive");
+	});
+	
+	socket.on("ChangeToNextPlayer", function() {
+		var room = getRoom();
+		var data = {};
+		getNextPlayerToMove(room, data);
+		io.sockets.socket(data.socketID).emit("toggleActive");
+	});
+	
 	//HELPER FUNCTIONS
 	
 	var getRoom = function (){
-		var roomID = people[socket.id].inroom;
+		if (typeof people[socket.id] !== "undefined") {
+			var roomID = people[socket.id].inroom;
+		}
 		var room = rooms[roomID];
 		return room;
 	};
@@ -686,42 +703,35 @@ io.sockets.on("connection", function (socket) {
 	var getScores = function (room, data){
 		data.myPlayerTile = people[socket.id].tile;
 		data.score = 0;
+		var visibleBackground = false;
 		room.checkMove(data);
+		if (!visibleBackground & data.winningSets.length > 0) {//unhide background image if there is a winning set, unless already shown
+			visibleBackground = true;
+			io.sockets.in(socket.room).emit("unhideBackground");
+		}
 		people[socket.id].score += data.score;
-		
 		data.score = people[socket.id].score;
-		var index = room.people.indexOf(socket.id);
-					console.log("Player's index is: " + index ); 
-		data.index = index;
 	};
 	
 	var adjustScreens = function (room,data){
-		var socketID = "";
-		console.log("Player's socket Id: " + socket.id + 
-					"/nLast socket Id: " + room.people[room.people.length - 1]	); 
-		if (socket.id === room.people[room.people.length - 1]) {
-			socketID = room.people[0];
+		data.index = room.people.indexOf(socket.id);
+	    io.sockets.in(socket.room).emit('removeBlinking');
+	    var players = room.getPeople();
+		if (socket.id === players[players.length - 1]) { // start new cycle if last player..
+			data.socketID = players[0];
+			data.NextPlayerToMove = 1;
 		} else {
-			socketID = room.people[data.index + 1];
+			data.socketID = players[data.index + 1]; // .. or chose next player
+			data.NextPlayerToMove = data.index + 2;
 		}
 					
 		if(room.canAnswer & people[socket.id].attempts > 0) {
-			socket.emit("enableCheckAnswerButton");	
-			var timer = new Stopwatch(5000);
-			// Fires when the timer is done
-			timer.onDone(function(){
-				io.sockets.socket(socketID).emit("toggleActive");
-				socket.emit("disableCheckAnswerButton");
-			    console.log('Timer is complete');
-			});
-			timer.start();
+			socket.emit("enableCheckAnswerButton", data);
 		} else {
-			io.sockets.socket(socketID).emit("toggleActive");
+			getNextPlayerToMove(room, data);
+			io.sockets.socket(data.socketID).emit("toggleActive");
 		}
 		room.canAnswer = false;
-		/*var last_element = room.people[room.people.length - 1];
-		socketID = room.people[data.index + 1];
-					console.log("Player's socketID is: " + socketID ); */
 	    io.sockets.in(socket.room).emit('sendScoresToClients', data);
 	    socket.emit("setTransparent", data);
 	    socket.broadcast.to(socket.room).emit("setUncovered", data);
@@ -745,15 +755,18 @@ io.sockets.on("connection", function (socket) {
 		  }
 		}
 		if (playersWithValidMoves === 0 || correctAnswer) {
+			io.sockets.in(socket.room).emit("disableBoard");
 			for(i = 0; i < peoples.length; i++) {
 				if (peoples[i] == winnersId) {
+					io.sockets.socket(peoples[i]).emit("changeActiveBoard", {active: true});
     				io.sockets.socket(peoples[i]).emit('update', 'You won!');
+					io.sockets.socket(peoples[i]).emit('endGame', data, 'Press Start button for a new game!');
+					io.sockets.socket(peoples[i]).emit("showStartButton");
 				} else {
+					io.sockets.socket(peoples[i]).emit("changeActiveBoard", {active: false});
     				io.sockets.socket(peoples[i]).emit('update', people[winnersId].name + ' won, you lost!');
 				}
 			}
-			io.sockets.in(socket.room).emit('endGame', data, 'Press Start button for a new game!');
-			io.sockets.in(socket.room).emit("showStartButton");
 		}
 	};
 });

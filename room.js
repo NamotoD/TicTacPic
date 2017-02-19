@@ -82,6 +82,10 @@ Room.prototype.getRandPic = function() {
 	return rand *=2.77778;
 };
 
+Room.prototype.getPicNames = function() {
+  return this.picNames;
+};
+
 Room.prototype.addPerson = function(personID) {
   if (this.status === "available") {
     this.people.push(personID);
