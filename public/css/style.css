@@ -306,7 +306,7 @@ h1 {
     left: 15px;
     width: calc(100% - 30px);
     height: calc(100vw - 30px + 12vh);
-    box-shadow: 0 4px 2px -2px white;
+    outline: #aaa solid;
 }
     
 a href
@@ -432,9 +432,8 @@ a href
     -webkit-border-image: url("../images/background/BrushedAluminium.png") 12 stretch; /* Safari 3.1-5 */
     -o-border-image: url("../images/background/BrushedAluminium.png") 12 stretch; /* Opera 11-12.1 */
     border-image: url("../images/background/BrushedAluminium.png") 12 stretch;
-    outline-color: black;
-    outline-style: solid;
     height: 12vh;
+    outline: #000 1px solid;
 }
 
 .blink_me {
@@ -486,8 +485,6 @@ a href
     background-image: url("../images/background/animalsSpriteNew.jpg");
     background-size: 0;
     display:block;
-    outline-color: black;
-    outline-style: solid;
 }
 
 #board .large
@@ -933,8 +930,16 @@ a href
 
 .row.no-gutter, .row-fluid.no-gutter-at-all
 {
-    margin-left: 0;
-    margin-right: 0;
+    margin-left: 1px;
+    margin-right: 1px;
+}
+@media screen and (min--moz-device-pixel-ratio:0) and (min-width: 992px) {
+
+.row.no-gutter, .row-fluid.no-gutter-at-all
+{
+    margin-right: -1px; /*fix fro firefox*/
+    
+}
 }
 
 /* .modal-fullscreen */
@@ -1141,9 +1146,17 @@ a href
 {
     top: calc(0vh + 13px);
     height: calc(100vh - 26px);
-    width: calc(100vw - 94vh + 3px);
-    left: calc(94vh - 12px);
+    width: calc(100vw - 94vh - 2px);
+    left: calc(94vh - 10px);
 }
+}
+
+@media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm)  and (min-width: 992px){ 
+
+#chat.after
+{
+    left: calc(94vh - 11px); /*fix fro chrome*/
+ }
 }
 
 @media only screen and (orientation:landscape) and (min-width: 1200px){
