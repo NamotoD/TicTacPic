@@ -11,6 +11,7 @@ function Room(name, id, owner, boardSize) {
     this.colors = [['violet', '#835A96'], ['red', '#F13836'], ['yellow', '#FFCC00'], ['green', '#9FCE30'], ['blue', '#4BBFF0']];
     this.peopleLimit = (this.s === 12) ? 4 : 2;
     this.status = "available";
+    this.gameStarted = false;
     this.private = false;
     this.buttonNames = ['b1',      'b2',       'b3',
                              'b4', 'b5', 'b6',
@@ -96,7 +97,7 @@ Room.prototype.removePerson = function(id) {
   var i = this.people.indexOf(id);
   if(i != -1) {
   	this.people.splice(i, 1);
-    if ((this.people.length) < this.peopleLimit) {
+    if ((this.people.length) < this.peopleLimit & !this.gameStarted) {
       this.status = "available";
     }
   }
@@ -138,6 +139,10 @@ Room.prototype.checkAvailability = function() {
   if ((this.people.length) >= this.peopleLimit) {
     this.status = "unavailable";
   }
+};
+
+Room.prototype.disableRoom = function() {
+    this.status = "unavailable";
 };
 
 Room.prototype.isPrivate = function() {
