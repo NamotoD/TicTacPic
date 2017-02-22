@@ -140,7 +140,15 @@ function purge(s, action) {
 		if (s.id === room.owner) { //user in room and owns room
 			if (action === "disconnect") {
 				io.sockets.in(s.room).emit("update", "The owner (" +people[s.id].name + ") has left the server. The room is removed and you have been disconnected from it as well.");
-				io.sockets.in(s.room).emit("redirect", "/room");
+		
+	    var players = room.getPeople();
+		for (var i=0; i<players.length; i++) {
+			if (players[i] !== s.id) {
+				io.sockets.socket(players[i]).emit("redirect", "/room");
+			} else {
+				io.sockets.socket(players[i]).emit("redirect", "/login");
+			}
+		}
 				var socketids = [];
 				for (var i=0; i<sockets.length; i++) {
 					socketids.push(sockets[i].id);
@@ -210,52 +218,80 @@ function purge(s, action) {
 		} else {//user in room but does not own room
 			if (action === "disconnect") {
 				io.sockets.emit("update", people[s.id].name + " has disconnected from the server.");
-				s.emit("redirect", "/room");
-				updateAfterPlayerDisrupt(s, size);
-				if (_.contains((room.people), s.id)) {
-					room.removePerson(s.id);
-					s.leave(room.name);
-				}
-				if(room.getPeople().length < 2) {
-					for(var key in people) {
-					    if(people[key].owns !== null & _.contains(room.getPeople(), people[key].id)) {
-					      io.sockets.socket(key).emit("hideStartButton");
-					    }
-					}
-				}
-				delete people[s.id];
-				lobbyUpdate (true, false, size, s);
-				s.emit("updateActive", {s: size});
-				o = _.findWhere(sockets, {'id': s.id});
-				sockets = _.without(sockets, o);
-			} else if (action === "removeRoom") {
-				s.emit("update", "Only the owner can remove a room.");
-			} else if (action === "leaveRoom") {
 				room.returnRandomTile([people[s.id].tile, people[s.id].tileHex]);
-				s.emit("redirect", "/room");
-				updateAfterPlayerDisrupt(s, size);
+				
+				//if (room.getPeople().length < 2) {
+					if (room.gameStarted) {
+					    players = room.getPeople();
+						for (var i=0; i<players.length; i++) {
+							if (players[i] !== s.id) {
+								io.sockets.socket(players[i]).emit("redirect", "/room");
+							} else {
+								io.sockets.socket(players[i]).emit("redirect", "/login");
+							}
+						}
+					} else {
+						for(var key in people) {
+						    if(people[key].owns !== null & _.contains(room.getPeople(), people[key].id)) {
+						      io.sockets.socket(key).emit("hideStartButton");
+						    }
+							s.emit("redirect", "/login");
+						}
+					}
+					
+				/*} else {
+					s.emit("redirect", "/login");
+				}*/
 				if (_.contains((room.people), s.id)) {
-					room.removePerson(s.id);
 					people[s.id].inroom = null;
-					io.sockets.emit("update", people[s.id].name + " has left the room.");
 					io.sockets.in(s.room).emit("disableBoard");
 					s.leave(room.name);
 					lobbyUpdate (true, false, size, s);
 					s.emit("updateActive", {s: size});
 				}
-				if(room.getPeople().length < 2) {
-					for(var key in people) {
-					    if(people[key].owns !== null & _.contains(room.getPeople(), people[key].id)) {
-					      io.sockets.socket(key).emit("hideStartButton");
-					    }
+				updateAfterPlayerDisrupt(s, size);
+				o = _.findWhere(sockets, {'id': s.id});
+				sockets = _.without(sockets, o);
+				delete people[s.id];
+				room.removePerson(s.id);
+			} else if (action === "removeRoom") {
+				s.emit("update", "Only the owner can remove a room.");
+			} else if (action === "leaveRoom") {
+				io.sockets.emit("update", people[s.id].name + " has left the room.");
+				room.returnRandomTile([people[s.id].tile, people[s.id].tileHex]);
+				
+				//if (room.getPeople().length < 2) {
+					if (room.gameStarted) {
+						io.sockets.in(s.room).emit("redirect", "/room");
+					} else {
+						for(var key in people) {
+						    if(people[key].owns !== null & _.contains(room.getPeople(), people[key].id)) {
+						      io.sockets.socket(key).emit("hideStartButton");
+						    }
+							s.emit("redirect", "/room");
+						}
 					}
+					
+				/*} else {
+					s.emit("redirect", "/room");
+				}*/
+				if (_.contains((room.people), s.id)) {
+					people[s.id].inroom = null;
+					io.sockets.in(s.room).emit("disableBoard");
+					s.leave(room.name);
+					lobbyUpdate (true, false, size, s);
+					s.emit("updateActive", {s: size});
 				}
+					
+				updateAfterPlayerDisrupt(s, size);
+				room.removePerson(s.id);
 			}
 		}	
 	} else {
 		//The user isn't in a room, but maybe he just disconnected, handle the scenario:
 		if (action === "disconnect") {
 			io.sockets.emit("update", people[s.id].name + " has disconnected from the server.");
+			s.emit("redirect", "/login");
 			delete people[s.id];
 			lobbyUpdate (true, false, size, s);
 			s.emit("updateActive", {s: size});
@@ -450,6 +486,8 @@ io.sockets.on("connection", function (socket) {
 	socket.on("startGame", function(id) {
 		var room = getRoom();
 		room.setUpPlayingBoard();
+		room.gameStarted = true;
+    	room.disableRoom();
 		var playersInRoom = [];
 		for (var i = 0; i < room.people.length; i++) {
 			people[room.people[i]].score = 0; //set to 0 on restart
@@ -538,6 +576,12 @@ io.sockets.on("connection", function (socket) {
 	});
 
 	socket.on("disconnect", function() {
+		if (typeof people[socket.id] !== "undefined") { //this handles the refresh of the name screen
+			purge(socket, "disconnect");
+		}
+	});
+
+	socket.on("logout", function() {
 		if (typeof people[socket.id] !== "undefined") { //this handles the refresh of the name screen
 			purge(socket, "disconnect");
 		}

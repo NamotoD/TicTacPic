@@ -129,6 +129,10 @@ $(document).ready(function() {
     $("#rulesContent").html($("#rule" + num).text()); // or some ajax content loading...
 });
   var socket = io.connect();
+  //tell socket.io to never give up :)
+socket.on('error', function(){
+  socket.socket.reconnect();
+});
   var myRoomID = active = null;
   $("#score").hide();
   $("#checkAnswer").hide();
@@ -346,6 +350,11 @@ $(document).ready(function() {
     socket.emit("leaveRoom", {roomID: roomID, roomSize: roomSize});
     $("#leave").hide();
     $("#createRoom").show();
+  }); 
+
+  $("#logout").click(function() {
+    socket.emit("logout");
+    $("#logout").hide();
   });
   
 socket.on('redirect', function(destination) {
@@ -541,6 +550,7 @@ socket.on('redirect', function(destination) {
   socket.on("showBoard", function(data) {
     $("#msgs").empty();
     $("#start_game_button").hide();
+    $("#logout").hide();
     var boardTemplate = document.getElementById('gameBoard'),
         gameArea = document.getElementById('game-area'),
         boardClone = boardTemplate.content.cloneNode(true);
