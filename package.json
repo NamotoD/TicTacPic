@@ -18,6 +18,9 @@
     "express": "^4.14.0",
     "express-session": "^1.14.0",
     "flipclock": "^0.7.8",
+    "grunt": "https://registry.npmjs.org/grunt/-/grunt-1.0.1.tgz",
+    "grunt-cli": "1.2.0",
+    "grunt-contrib-uglify": "2.1.0",
     "method-override": "^2.3.6",
     "mongoose": "^4.5.4",
     "morgan": "^1.7.0",
@@ -37,7 +40,7 @@
     "grunt": "^1.0.1"
   },
   "scripts": {
-    "postinstall": "./node_modules/bower/bin/bower install"
+    "postinstall": "./node_modules/bower/bin/bower install && grunt uglify"
   },
   "repository": {
     "type": "git",
