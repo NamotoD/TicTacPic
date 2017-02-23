@@ -1,6 +1,9 @@
 {
   "name": "tic_tac_pic",
   "version": "0.0.1",
+  "engines": {
+    "node": "4.2.1"
+  },
   "description": "A responsive turn-based multiplayer game",
   "main": "server.js",
   "cacheDirectories": [
@@ -40,8 +43,7 @@
     "grunt": "^1.0.1"
   },
   "scripts": {
-    "postinstall": "./node_modules/bower/bin/bower install && grunt uglify",
-    "start": "node server.js"
+    "postinstall": "./node_modules/bower/bin/bower install && grunt uglify"
   },
   "repository": {
     "type": "git",
