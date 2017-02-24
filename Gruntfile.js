@@ -1,3 +1,5 @@
+//if any issues try to remove '&& grunt uglify' string from posinstall script in package.json
+// in footer.ejs change '/js/build/client.min.js' to '/js/client.js'
 module.exports = function(grunt) {
 
   // Project configuration.
