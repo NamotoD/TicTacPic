@@ -660,16 +660,12 @@ io.sockets.on("connection", function (socket) {
         var correctAnswer = false;
 		var room = getRoom();
 		people[socket.id].score += data.score;
-		if (data.decreaseAttempts) {
-			people[socket.id].attempts -= 1;
-		}
-		var index = room.people.indexOf(socket.id); 
-		data.index = index;
+		people[socket.id].attempts -= 1;
+		data.index = room.people.indexOf(socket.id);
 		data.score = people[socket.id].score;
 	    io.sockets.in(socket.room).emit('sendScoresToClients', data);
         correctAnswer = data.result;
-        if (correctAnswer)
-		validateMoves(room, data, correctAnswer);
+		getValidMoves(room, data, correctAnswer);
 	});	
 
 	socket.on("removeRoom", function(id) {
@@ -680,13 +676,108 @@ io.sockets.on("connection", function (socket) {
          	socket.emit("update", "Only the owner can remove a room.");
 		}
 	});
-	
+	/*
 	socket.on("sendClickedButton", function(data) {
+		var propValue;
+		   console.log("DATA initial: ");
+		for(var propName in data) {
+		    propValue = data[propName];
+		    console.log("                          " + propName,propValue);
+		}
+		
 		var room = getRoom();
 		getScores(room, data);
+		var propValue;
+		   console.log("DATA after getScores(): ");
+		for(var propName in data) {
+		    propValue = data[propName];
+		    console.log("                          " + propName,propValue);
+		}
+		
 		adjustScreens(room,data);
+		var propValue;
+		   console.log("DATA after adjustScreens(): ");
+		for(var propName in data) {
+		    propValue = data[propName];
+		    console.log("                          " + propName,propValue);
+		}
+		
 		validateMoves(room, data);
+		var propValue;
+		   console.log("DATA after adjustScreens(): ");
+		for(var propName in data) {
+		    propValue = data[propName];
+		    console.log("                          " + propName,propValue);
+		}
+	});*/
+	
+	socket.on("sendClickedButton", function(data) {
+	var room = getRoom();
+	data.index = room.people.indexOf(socket.id);
+	getScores(room, data);
+	io.sockets.in(socket.room).emit('changeTileOnClick', data);
+	if (data.winningSets.length > 0) {
+		data.index = room.people.indexOf(socket.id);
+	    io.sockets.in(socket.room).emit('removeBlinking');
+	    var players = room.getPeople();
+		if (socket.id === players[players.length - 1]) { // start new cycle if last player..
+			data.socketID = players[0];
+			data.NextPlayerToMove = 1;
+		} else {
+			data.socketID = players[data.index + 1]; // .. or chose next player
+			data.NextPlayerToMove = data.index + 2;
+		}
+	    io.sockets.in(socket.room).emit('sendScoresToClients', data);
+	    socket.emit("setTransparent", data);
+	    socket.broadcast.to(socket.room).emit("setUncovered", data);
+					
+		if(room.canAnswer & people[socket.id].attempts > 0) {
+			socket.emit("enableCheckAnswerButton", data);
+		} else {
+			getValidMoves(room, data, false);
+		}
+		room.canAnswer = false;
+	} else {
+		getValidMoves(room, data, false);
+	}
 	});
+	
+	var getValidMoves = function (room, data, correctAnswer){
+	    var peoples = room.getPeople();
+  		var playersWithValidMoves = peoples.length;
+		for(var i = 0; i < peoples.length; i++) {  
+			room.checkValidMoves(data);
+			if(!data.validMoves) {
+				playersWithValidMoves -= 1;
+			}
+		}
+		if (playersWithValidMoves > 0 & !correctAnswer) {
+			getNextPlayerToMove(room, data);
+			io.sockets.socket(data.socketID).emit("toggleActive");
+		} else {
+			var highestScore = 0;
+	  		var winnersId = people[peoples[0]].id;
+			for(var i = 0; i < peoples.length; i++) { 
+				if(people[peoples[i]].score > highestScore) {
+					winnersId = people[peoples[i]].id;
+					highestScore = people[peoples[i]].score;
+				}
+			}
+			io.sockets.in(socket.room).emit("disableBoard");
+			io.sockets.in(socket.room).emit("showImage");
+			for(i = 0; i < peoples.length; i++) {
+				if (peoples[i] == winnersId) {
+					io.sockets.socket(peoples[i]).emit("changeActiveBoard", {active: true});
+    				io.sockets.socket(peoples[i]).emit('update', 'You won!');
+					io.sockets.socket(peoples[i]).emit('endGame', data, 'Press Start button for a new game!');
+					io.sockets.socket(peoples[i]).emit("showStartButton");
+				} else {
+					io.sockets.socket(peoples[i]).emit("changeActiveBoard", {active: false});
+    				io.sockets.socket(peoples[i]).emit('update', people[winnersId].name + ' won, you lost!');
+				}
+			}
+		}
+	};
 	
 	var getNextPlayerToMove = function (room, data){
 		data.index = room.people.indexOf(socket.id);
@@ -717,8 +808,7 @@ io.sockets.on("connection", function (socket) {
 	socket.on("ChangeToNextPlayer", function() {
 		var room = getRoom();
 		var data = {};
-		getNextPlayerToMove(room, data);
-		io.sockets.socket(data.socketID).emit("toggleActive");
+		getValidMoves(room, data, false);
 	});
 	
 	//HELPER FUNCTIONS
@@ -800,6 +890,7 @@ io.sockets.on("connection", function (socket) {
 		}
 		if (playersWithValidMoves === 0 || correctAnswer) {
 			io.sockets.in(socket.room).emit("disableBoard");
+			io.sockets.in(socket.room).emit("showImage");
 			for(i = 0; i < peoples.length; i++) {
 				if (peoples[i] == winnersId) {
 					io.sockets.socket(peoples[i]).emit("changeActiveBoard", {active: true});
