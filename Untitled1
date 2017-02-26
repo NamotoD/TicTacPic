@@ -1,0 +1,67 @@
+	socket.on("sendClickedButton", function(data) {
+	var room = getRoom();
+	data.index = room.people.indexOf(socket.id);
+	getScores(room, data);
+	io.sockets.in(socket.room).emit('changeTileOnClick', data);
+	if (data.winningSets.length > 0) {
+		data.index = room.people.indexOf(socket.id);
+	    io.sockets.in(socket.room).emit('removeBlinking');
+	    var players = room.getPeople();
+		if (socket.id === players[players.length - 1]) { // start new cycle if last player..
+			data.socketID = players[0];
+			data.NextPlayerToMove = 1;
+		} else {
+			data.socketID = players[data.index + 1]; // .. or chose next player
+			data.NextPlayerToMove = data.index + 2;
+		}
+	    io.sockets.in(socket.room).emit('sendScoresToClients', data);
+	    socket.emit("setTransparent", data);
+	    socket.broadcast.to(socket.room).emit("setUncovered", data);
+					
+		if(room.canAnswer & people[socket.id].attempts > 0) {
+			socket.emit("enableCheckAnswerButton", data);
+		} else {
+			getValidMoves(room, data);
+		}
+		room.canAnswer = false;
+	} else {
+		getValidMoves(room, data);
+	}
+	});
+	
+	var getValidMoves = function (room, data){
+	    var peoples = room.getPeople();
+  		var playersWithValidMoves = peoples.length;
+		for(var i = 0; i < peoples.length; i++) {  
+			room.checkValidMoves(data);
+			if(!data.validMoves) {
+				playersWithValidMoves -= 1;
+			}
+		}
+		if (playersWithValidMoves > 0) {
+			getNextPlayerToMove(room, data);
+			io.sockets.socket(data.socketID).emit("toggleActive");
+		} else {
+			var highestScore = 0;
+	  		var winnersId = people[peoples[0]].id;
+			for(var i = 0; i < peoples.length; i++) { 
+				if(people[peoples[i]].score > highestScore) {
+					winnersId = people[peoples[i]].id;
+					highestScore = people[peoples[i]].score;
+				}
+			}
+			io.sockets.in(socket.room).emit("disableBoard");
+			io.sockets.in(socket.room).emit("showImage");
+			for(i = 0; i < peoples.length; i++) {
+				if (peoples[i] == winnersId) {
+					io.sockets.socket(peoples[i]).emit("changeActiveBoard", {active: true});
+    				io.sockets.socket(peoples[i]).emit('update', 'You won!');
+					io.sockets.socket(peoples[i]).emit('endGame', data, 'Press Start button for a new game!');
+					io.sockets.socket(peoples[i]).emit("showStartButton");
+				} else {
+					io.sockets.socket(peoples[i]).emit("changeActiveBoard", {active: false});
+    				io.sockets.socket(peoples[i]).emit('update', people[winnersId].name + ' won, you lost!');
+				}
+			}
+		}
+	};

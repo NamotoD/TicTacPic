@@ -74,22 +74,23 @@ function timeFormat(msTime) {
 
 var clock1,
 clock2,
-setTimeout1,
-setTimeout2,
-setTimeout3,
+countdownToHideTurn,
+countdownToChangeToNextPlayer1,
+countdownToChangeToNextPlayer2,
+countdownToHideGuessButton,
 setTimeout4,
-countdown1,
+countdownToShowClock,
 countdown2;
 
 
 $(document).ready(function() {
     $('.dropup').on('show.bs.dropdown', function(){
-    clearTimeout(setTimeout3);
+    clearTimeout(countdownToHideGuessButton);
     setTimeout4 = setTimeout(function() { $("#warningBoard").hide();
                             $("#guessPar").hide();
                             $("#checkAnswer").hide();
                             socket.emit('ChangeToNextPlayer');
-    }, 10000);// show "Guess image!" button for 5 seconds
+    }, 10000);// show "Guess list!" button for 10 seconds
     });
   
   $('#overviewPager').bootpag({
@@ -368,11 +369,13 @@ socket.on('redirect', function(destination) {
   });
   
   $(document).on('click', '.col', function() {
+  	$("#turnPar").hide();
     $(".clock").hide();
+  	$("#guessPar").hide();
     $("#warningBoard").hide();
-    clearTimeout(setTimeout1);
-    clearTimeout(setTimeout2);
-    clearTimeout(countdown1);
+    clearTimeout(countdownToChangeToNextPlayer1);
+    clearTimeout(countdownToChangeToNextPlayer2);
+    clearTimeout(countdownToShowClock);
     clearTimeout(countdown2);
     // the tapped button id
     var clickedButtonId = parseInt(this.id);
@@ -420,7 +423,7 @@ socket.on('redirect', function(destination) {
       	});
       }, 11000);
       
-      setTimeout2 = setTimeout(function() { $("#board").addClass("not-active"); 
+      countdownToChangeToNextPlayer2 = setTimeout(function() { $("#board").addClass("not-active"); 
       		        		        $('.clock').css("display", "none");
                               socket.emit('ChangeToNextPlayer');
         
@@ -429,8 +432,12 @@ socket.on('redirect', function(destination) {
   
   socket.on("sendScoresToClients", function(data) {
     $(".player-score:eq(" + data.index + ")").find('.badge').text( data.score );
+  });
+  
+  socket.on("changeTileOnClick", function(data) {
     $("#" + data.clickedButtonId).parent('div').removeClass("Default").addClass(data.myPlayerTile);
   });
+  
   
   socket.on("setTransparent", function(data) {
     $.each(data.winningSets, function (i, set) {
@@ -438,6 +445,10 @@ socket.on('redirect', function(destination) {
         $("#" + this).parent('div').addClass('transparent');
       });
     });
+  }); 
+  
+  socket.on("showImage", function() {
+      $("#board > div").css("opacity", "0.1");
   });  
   
   socket.on("setUncovered", function(data) {
@@ -567,10 +578,11 @@ socket.on('redirect', function(destination) {
       $("#board").removeClass("not-active").addClass("active");
       
       $("#warningBoard").show();
-      setTimeout(function() { $("#warningBoard").hide();
+      $("#turnPar").show();
+      countdownToHideTurn = setTimeout(function() { $("#warningBoard").hide();
   	                          $("#turnPar").hide();}, 2000);// show "your turn!" for 2 seconds
     		
-      countdown1 = setTimeout(function(){  $("#warningBoard").show(); 
+      countdownToShowClock = setTimeout(function(){  $("#warningBoard").show(); 
                               $(".clock").show();
         clock1 = $('.clock').FlipClock(5, {
       		        clockFace: 'MinuteCounter',
@@ -583,8 +595,9 @@ socket.on('redirect', function(destination) {
       	});
       }, 11000);
       
-      setTimeout1 = setTimeout(function() { $("#board").addClass("not-active"); 
-      		        		        $('.clock').css("display", "none");
+      countdownToChangeToNextPlayer1 = setTimeout(function() { $("#board").addClass("not-active"); 
+                              $("#warningBoard").hide();
+  	                          $("#cloc").hide();
                               socket.emit('ChangeToNextPlayer');
         
       }, 16000);// show "Change players!"
@@ -634,7 +647,7 @@ socket.on('redirect', function(destination) {
     $("#checkAnswer").show();
     $("#guessPar").show();
     $("#warningBoard").show();
-    setTimeout3 = setTimeout(function() { $("#warningBoard").hide();
+    countdownToHideGuessButton = setTimeout(function() { $("#warningBoard").hide();
                             $("#guessPar").hide();
                             $("#checkAnswer").hide();
                             socket.emit('ChangeToNextPlayer');
@@ -654,11 +667,9 @@ $('body').on('click', '#picture-choice li', function(){
     socket.emit("checkAnswer", answer, function(data) {
       correctAnswer = data.result;
       data.score = 0;
-      data.decreaseAttempts = true;
 
        if (correctAnswer) {
           data.score += 100;
-          data.decreaseAttempts = false;
           $("#errors").empty();
           $("#errors").hide();
           
@@ -792,11 +803,12 @@ $('body').on('click', '#listOfRooms li', function(){
 
   socket.on("changeActiveBoard", function(data) {
     active = data.active;
-    $("#board").removeClass("active").addClass("not-active");
-    clearTimeout(setTimeout1);
-    clearTimeout(setTimeout2);
-    clearTimeout(setTimeout3);
-    clearTimeout(countdown1);
+    $("#board").removeClass("active").addClass("not-active"); 
+    $("#warningBoard").hide();
+    clearTimeout(countdownToChangeToNextPlayer1);
+    clearTimeout(countdownToChangeToNextPlayer2);
+    clearTimeout(countdownToHideGuessButton);
+    clearTimeout(countdownToShowClock);
     clearTimeout(countdown2);
   });
   
@@ -810,6 +822,7 @@ $('body').on('click', '#listOfRooms li', function(){
       
   socket.on("disableBoard", function(data) {
     $("#board").addClass("not-active"); 
+    $("#warningBoard").hide();
   });
 
   socket.on("endGame", function(data, msg){

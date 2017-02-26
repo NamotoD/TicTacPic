@@ -563,7 +563,6 @@ a href
 .clock ul:nth-child(3),
 .clock ul:nth-child(5),
 .flip-clock-label
-
 {
     display: none;
 }
