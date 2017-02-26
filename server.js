@@ -738,7 +738,7 @@ io.sockets.on("connection", function (socket) {
 		}
 		room.canAnswer = false;
 	} else {
-		getValidMoves(room, data, false);
+		getValidMoves(room, data, false);// resolve next turn
 	}
 	});
 	
@@ -800,10 +800,6 @@ io.sockets.on("connection", function (socket) {
 		}
 		
 	};
-	
-	socket.on("ChangeActivePlayer", function(data) {
-			io.sockets.socket(data.socketID).emit("toggleActive");
-	});
 	
 	socket.on("ChangeToNextPlayer", function() {
 		var room = getRoom();
@@ -870,7 +866,7 @@ io.sockets.on("connection", function (socket) {
 	    socket.emit("setTransparent", data);
 	    socket.broadcast.to(socket.room).emit("setUncovered", data);
 	};
-	
+	/*
 	var validateMoves = function (room, data, correctAnswer){
 	    var peoples = room.getPeople();
   		var playersWithValidMoves = peoples.length;
@@ -903,5 +899,5 @@ io.sockets.on("connection", function (socket) {
 				}
 			}
 		}
-	};
+	};*/
 });

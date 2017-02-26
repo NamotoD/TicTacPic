@@ -448,7 +448,7 @@ socket.on('redirect', function(destination) {
   }); 
   
   socket.on("showImage", function() {
-      $("#board > div").css("opacity", "0.1");
+      $("#board > div").css("opacity", "0");
   });  
   
   socket.on("setUncovered", function(data) {
