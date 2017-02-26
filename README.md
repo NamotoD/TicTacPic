@@ -1,4 +1,4 @@
-# Chat app written in node.js and socket.io
+# Turn-based game with Chat app written in node.js and socket.io
 
 ## Libraries used
 <ul>
@@ -8,11 +8,16 @@
   <li>node-uuid</li>
   <li>underscore</li>
   <li>ejs</li>
+  <li>bootstrap</li>
+  <li>flipclock</li>
+  <li>bootpag</li>
+  <li>pace.js</li>
+  <li>jquery</li>
 </ul>
 
 # Functionality
 <ul>
-  <li>People are able to join the chat server after entering their names</li>
+  <li>People are able to join the lobby after login with their names</li>
   <li>Usernames are unique - if a username is taken, a new suggestion is generated</li>
   <li>User agent and geo location are both detected</li>
   <li>People can setup a room. Room names are unique. One person can create on room and join one room</li>
