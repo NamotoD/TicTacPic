@@ -82,8 +82,27 @@ setTimeout4,
 countdownToShowClock,
 countdown2;
 
+var activateAutoLogout = function () {
+    var countDown;
+    window.onload = restartCoundDown;
+    document.onmousemove = restartCoundDown;
+    document.onkeypress = restartCoundDown;
+    document.onmousedown = restartCoundDown;
+    document.ontouchstart = restartCoundDown;
+    document.onclick = restartCoundDown;
+
+    function autoLogout() {
+      window.location.href = "/login";
+    }
+
+    function restartCoundDown() {
+        clearTimeout(countDown);
+        countDown = setTimeout(autoLogout, 3000);
+    }
+};
 
 $(document).ready(function() {
+    activateAutoLogout();
     $('.dropup').on('show.bs.dropdown', function(){
     clearTimeout(countdownToHideGuessButton);
     setTimeout4 = setTimeout(function() { $("#warningBoard").hide();
