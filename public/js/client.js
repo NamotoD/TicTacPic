@@ -97,7 +97,7 @@ var activateAutoLogout = function () {
 
     function restartCoundDown() {
         clearTimeout(countDown);
-        countDown = setTimeout(autoLogout, 3000);
+        countDown = setTimeout(autoLogout, 300000); // logout players after 5 mins inactive
     }
 };
 
