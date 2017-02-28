@@ -67,8 +67,6 @@ module.exports = function(app, passport) {
     	User.findById(req.user._id, function(err, user) {
     	    if (err) throw err;
     	
-    	    // show the one user
-    	    console.log(user);
         	var size  = user.local.size,
         		board ="";
         	if ( size === 'Small'){
@@ -85,7 +83,7 @@ module.exports = function(app, passport) {
           	res.render('pages/index.ejs', {
         	  	mainScreen:"../partials/gameScreen",
         	  	active:"not-active",
-        	  	rows:size,
+        	  	rows:size | 12,
         	  	boardSize: board
           	});
     	});

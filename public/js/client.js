@@ -292,7 +292,7 @@ socket.on('error', function(){
         $.each(data.rooms, function(id, room) {
           if (room.size === data.s) {
             var html = "<button id="+id+" data-roomName="+room.name+" class='btn btn-default btn-xs' >Join</button>"/* + " " + "<button id="+id+" class='removeRoomBtn btn btn-default btn-xs'>Remove</button>"*/;
-            $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.size + "</span> " + html + " " + room.status + "</li>");
+            $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span></span> " + html + " " + room.status + "</li>");
           } else {
             if (displayNoRooms < 1) {
                 $("#listOfRooms").append("<li class=\"list-group-item\">There are other room sizes available!</li>");
@@ -317,7 +317,7 @@ socket.on('error', function(){
         $.each(data.rooms, function(id, room) {
           if (room.size === data.s) {
             var html = "<button id="+id+" data-roomName="+room.name+" class='btn btn-default btn-xs' >Join</button>"/* + " " + "<button id="+id+" class='removeRoomBtn btn btn-default btn-xs'>Remove</button>"*/;
-            $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.size + "</span> " + html + " " + room.status + "</li>");
+            $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span></span> " + html + " " + room.status + "</li>");
           } else {
             if (displayNoRooms < 1) {
                 $("#listOfRooms").append("<li class=\"list-group-item\">There are other room sizes available!</li>");
@@ -339,7 +339,7 @@ socket.on('error', function(){
         $.each(data.rooms, function(id, room) {
           if (room.size === data.s) {
             var html = "<button id="+id+" data-roomName="+room.name+" class='btn btn-default btn-xs' >Join</button>"/* + " " + "<button id="+id+" class='removeRoomBtn btn btn-default btn-xs'>Remove</button>"*/;
-            $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.size + "</span> " + html + " " + room.status + "</li>");
+            $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span></span> " + html + " " + room.status + "</li>");
           } else {
             if (displayNoRooms < 1) {
                 $("#listOfRooms").append("<li class=\"list-group-item\">There are other room sizes available!</li>");
@@ -794,7 +794,7 @@ $('body').on('click', '#listOfRooms li', function(){
       $.each(data.rooms, function(id, room) {
         if (room.size === data.s) {
           var html = "<button id="+id+" data-roomName="+room.name+" class='btn btn-default btn-xs' >Join</button>"/* + " " + "<button id="+id+" class='removeRoomBtn btn btn-default btn-xs'>Remove</button>"*/;
-          $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span>" + room.size + "</span> " + html + " " + room.status + "</li>");
+          $('#listOfRooms').append("<li id="+id+" class=\"list-group-item\"><span>" + room.name + "</span><span></span> " + html + " " + room.status + "</li>");
         } else {
           if (displayNoRooms < 1) {
             $("#msgs").append("<li class=\"text-success\">There are other room sizes available! </li>");
