@@ -6,10 +6,10 @@
     </head>
 <body>
 <img src="../images/084.png" class="bg">
-<div id = "signupScreen" class="main-screenFrame container-fluid">
+<div id = "signupScreen" class="main-screenFrame container-fluid text-center">
     <div id = "signupWrap" class="row-fluid no-gutter">
         
-        <div class="col-sm-6 col-sm-offset-3">
+        <div id = "jumbotronSignup" class="jumbotron text-center col-xs-12">
         
             <h1><span class="fa fa-sign-in"></span> Signup</h1>
         
@@ -26,20 +26,18 @@
                 </div>
                 <div class="form-group">
                     <label>Email</label>
-                    <input type="text" class="form-control" name="email">
+                    <input type="text" class="form-control" name="email" required>
                 </div>
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" class="form-control" name="password">
+                    <input type="password" class="form-control" name="password" required>
                 </div>
         
                 <button type="submit" class="btn btn-warning btn-lg">Signup</button>
             </form>
         
-            <hr>
-        
-            <p>Already have an account? <a href="/login">Login</a></p>
-            <p>Or go <a href="/">home</a>.</p>
+            <p>Already have an account?</p>
+            <p><a href="/login">Login</a> Or go <a href="/">home</a>.</p>
         
         </div>
     </div>
