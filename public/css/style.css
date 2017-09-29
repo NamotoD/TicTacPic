@@ -100,8 +100,8 @@ input.form-control {
 
 
 .form-group {
-    margin-left: 10px;
-    margin-right: 10px;
+    margin-left: 10%;
+    margin-right: 10%;
 }
 
 
@@ -698,18 +698,6 @@ a href
     width: 100%;
 }
 
-#chatWrap{
-    
-}
-
-#createRoom, #leave, #checkAnswerBtn, #login, #signup, #send
-{
-    background: url('../images/background/brushed_aluminium_button_long.jpg');
-    background-size: 100% 100%;
-    max-width: 120px;
-    
-}
-
 .scrollable-menu {
     height: 300px;
     width: 500px;
@@ -776,6 +764,34 @@ a href
     0 5px 0 0 #000;
 }
 
+.btn-group .btn + .btn{
+    margin-left: 0px;
+}
+
+#checkAnswerBtn
+{
+    background: url('../images/background/brushed_aluminium_button_long_cut.jpg');
+    background-repeat: no-repeat;
+    color: #000;
+    border-color: #000;
+    background-size: 100% 100%;
+    border-top-left-radius: 24px;
+    box-shadow: 0 2px 0 0 #898f99,
+    0 5px 0 0 #000;
+}
+
+#checkAnswerDropBtn
+{
+    background: url('../images/background/brushed_aluminium_button_long_cut_right.jpg');
+    background-repeat: no-repeat;
+    color: #000;
+    border-color: #000;
+    background-size: 100% 100%;
+    border-top-right-radius: 24px;
+    box-shadow: 0 2px 0 0 #898f99,
+    0 5px 0 0 #000;
+}
+
 .btn:focus,
 .btn:active:focus,
 .btn.active:focus,
@@ -783,7 +799,6 @@ a href
 .btn:active.focus,
 .btn.active.focus 
 {
-    background: url('../images/background/brushed_aluminium_button_long.jpg');
     background-repeat: no-repeat;
     color: #000;
     border-color: #1f1f14;
@@ -791,11 +806,38 @@ a href
     border-radius: 24px;
 }
 
+#checkAnswerBtn:focus,
+#checkAnswerBtn:active:focus,
+#checkAnswerBtn.active:focus,
+#checkAnswerBtn.focus,
+#checkAnswerBtn:active.focus,
+#checkAnswerBtn.active.focus 
+{
+    background-repeat: no-repeat;
+    color: #000;
+    border-color: #1f1f14;
+    background-size: 100% 100%;
+    border-top-left-radius: 24px;
+}
+
+#checkAnswerDropBtn:focus,
+#checkAnswerDropBtn:active:focus,
+#checkAnswerDropBtn.active:focus,
+#checkAnswerDropBtn.focus,
+#checkAnswerDropBtn:active.focus,
+#checkAnswerDropBtn.active.focus 
+{
+    background-repeat: no-repeat;
+    color: #000;
+    border-color: #1f1f14;
+    background-size: 100% 100%;
+    border-top-right-radius: 24px;
+}
+
 .btn:hover,
 .btn:focus,
 .btn.focus 
 {
-    background: url('../images/background/brushed_aluminium_button_long.jpg');
     background-repeat: no-repeat;
     color: #000;
     border-color: #1f1f14;
@@ -805,10 +847,35 @@ a href
   
 }
 
+#checkAnswerBtn:hover,
+#checkAnswerBtn:focus,
+#checkAnswerBtn.focus 
+{
+    background-repeat: no-repeat;
+    color: #000;
+    border-color: #1f1f14;
+    background-size: 100% 100%;
+    border-top-left-radius: 24px;
+    text-decoration: none;
+  
+}
+
+#checkAnswerDropBtn:hover,
+#checkAnswerDropBtn:focus,
+#checkAnswerDropBtn.focus 
+{
+    background-repeat: no-repeat;
+    color: #000;
+    border-color: #1f1f14;
+    background-size: 100% 100%;
+    border-top-right-radius: 24px;
+    text-decoration: none;
+  
+}
+
 .btn:active,
 .btn.active 
 {
-    background: url('../images/background/brushed_aluminium_button_long.jpg');
     background-repeat: no-repeat;
     color: #000;
     border-color: #1f1f14;
@@ -817,6 +884,55 @@ a href
     box-shadow: none;
 	margin-bottom: -3px;
 	margin-top: 3px;
+}
+
+#checkAnswerBtn:active,
+#checkAnswerBtn.active 
+{
+    background-repeat: no-repeat;
+    color: #000;
+    border-color: #1f1f14;
+    background-size: 100% 100%;
+    border-top-left-radius: 24px;
+    box-shadow: none;
+	margin-bottom: -3px;
+	margin-top: 3px;
+}
+
+#checkAnswerDropBtn:active,
+#checkAnswerDropBtn.active 
+{
+    background-repeat: no-repeat;
+    color: #000;
+    border-color: #1f1f14;
+    background-size: 100% 100%;
+    border-top-right-radius: 24px;
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
+    box-shadow: none;
+	margin-bottom: -3px;
+	margin-top: 3px;
+}
+
+.btn.disabled{
+  cursor: default;
+  pointer-events: none;
+  opacity: 1;
+  filter: alpha(opacity=100);
+}
+
+.buttonDisabled{
+  cursor: default;
+  pointer-events: none;
+  opacity: 1;
+  filter: alpha(opacity=100);
+}
+
+.buttonEnabled{
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: 1;
+  filter: alpha(opacity=100);
 }
 
 .nav-pills > li.active > a,
@@ -1173,7 +1289,7 @@ h1 {
      width: 1170px;
   }
 
-#loginWrap
+#loginWrap, #signupWrap, #authWrapper
 {
   width: 50%;
 }
@@ -1181,5 +1297,11 @@ h1 {
   padding: 0 0;
   position: absolute;
 }
+
+.form-group {
+    margin-left: 30%;
+    margin-right: 30%;
+}
+
 }
 

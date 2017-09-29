@@ -366,27 +366,7 @@ function getBadgeIndex(index, size){
     return index;
 }
 
-var inactivityTime = function () {
-    var t;
-    window.onload = resetTimer;
-    // DOM Events
-    document.onmousemove = resetTimer;
-    document.onkeypress = resetTimer;
-
-    function logout() {
-        alert("You are now logged out.")
-        //location.href = 'logout.php'
-    }
-
-    function resetTimer() {
-        clearTimeout(t);
-        t = setTimeout(logout, 3000)
-        // 1000 milisec = 1 sec
-    }
-};
-
 io.sockets.on("connection", function (socket) {
-	//inactivityTime();
 	user = socket.handshake.user; // get user info from passport
 	console.log("User ID: " + user._id);
 	var size = socket.handshake.user.local.size;
@@ -511,6 +491,7 @@ io.sockets.on("connection", function (socket) {
 		var playersInRoom = [];
 		for (var i = 0; i < room.people.length; i++) {
 			people[room.people[i]].score = 0; //set to 0 on restart
+			people[room.people[i]].attempts = 3;
 			playersInRoom.push(people[room.people[i]]); //pass object with players in a room
 		}
 		var data = {
@@ -863,6 +844,7 @@ io.sockets.on("connection", function (socket) {
 		data.score = people[socket.id].score;
 	};
 	
+	/*
 	var adjustScreens = function (room,data){
 		data.index = room.people.indexOf(socket.id);
 	    io.sockets.in(socket.room).emit('removeBlinking');
@@ -886,7 +868,6 @@ io.sockets.on("connection", function (socket) {
 	    socket.emit("setTransparent", data);
 	    socket.broadcast.to(socket.room).emit("setUncovered", data);
 	};
-	/*
 	var validateMoves = function (room, data, correctAnswer){
 	    var peoples = room.getPeople();
   		var playersWithValidMoves = peoples.length;
