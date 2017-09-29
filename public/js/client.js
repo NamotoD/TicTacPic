@@ -97,7 +97,7 @@ var activateAutoLogout = function () {
 
     function restartCoundDown() {
         clearTimeout(countDown);
-        countDown = setTimeout(autoLogout, 300000); // logout players after 5 mins inactive
+        countDown = setTimeout(autoLogout, 120000); // logout players after 2 mins inactivity
     }
 };
 
@@ -157,7 +157,9 @@ socket.on('error', function(){
   $("#score").hide();
   $("#checkAnswer").hide();
   $("#leave").hide();
+  $("#leave").removeClass("buttonEnabled").addClass("buttonDisabled");
   $("#start_game_button").hide();
+  $("#start_game_button").removeClass("buttonEnabled").addClass("buttonDisabled");
   $("#listOfRooms").show();
     var device = "desktop";
     if (navigator.userAgent.match(/Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile/i)) {
@@ -244,9 +246,13 @@ socket.on('error', function(){
 	});  
 	
 	socket.on("updateOnCreateOrJoin", function() {
+    $("#logout").show();
+    $("#logout").removeClass("buttonDisabled").addClass("buttonEnabled");
     $("#createRoom").hide();
+    $("#leave").removeClass("buttonEnabled").addClass("buttonDisabled");
     $("#listOfRooms").hide();
     $("#leave").show();
+    $("#leave").removeClass("buttonDisabled").addClass("buttonEnabled");
 	  $('.collapse').collapse("hide");
 	  $('#rooms li').addClass('disabled');
     $("#rooms li.disabled a").click(function() {
@@ -278,6 +284,10 @@ socket.on('error', function(){
 */ 
 
   $("#createRoom").click(function() {
+    $(this).hide();
+    $(this).removeClass("buttonEnabled").addClass("buttonDisabled");
+    $("#logout").hide();
+    $("#logout").removeClass("buttonEnabled").addClass("buttonDisabled");
     socket.emit("createRoom");
   });
   
@@ -354,6 +364,8 @@ socket.on('error', function(){
 	});
   
   $("#start_game_button").click(function() {
+    $(this).hide();
+    $(this).removeClass("buttonEnabled").addClass("buttonDisabled");
     socket.emit("startGame");
   });
 
@@ -362,14 +374,16 @@ socket.on('error', function(){
     var roomID = $(this).attr("id");
     socket.emit("removeRoom", roomID);
     $("#createRoom").show();
+    $("#leave").removeClass("buttonDisabled").addClass("buttonEnabled");
   }); 
 
   $("#leave").click(function() {
     var roomID = myRoomID,
     roomSize = $(".list-group-item.active").attr("id");
     socket.emit("leaveRoom", {roomID: roomID, roomSize: roomSize});
-    $("#leave").hide();
-    $("#createRoom").show();
+    $(this).hide();
+    $(this).removeClass("buttonEnabled").addClass("buttonDisabled");
+    //$("#createRoom").show();
   }); 
 
   $("#logout").click(function() {
@@ -411,6 +425,9 @@ socket.on('redirect', function(destination) {
       alert("Choose another button!");
     }
   });
+  $(document).on('click', '#checkAnswerDropBtn', function() {
+    $("#checkAnswerDropBtn").removeClass("buttonEnabled").addClass("buttonDisabled");
+  });
   
   socket.on("removeBlinking", function() {
     $('*[data-index=1]').removeClass('blink_me');
@@ -426,6 +443,7 @@ socket.on('redirect', function(destination) {
   socket.on("showActiveToActive", function(data) { // player on turn
     $("#warningBoard").show();
   	$("#turnPar").show();
+    $("#checkAnswerDropBtn").removeClass("buttonDisabled").addClass("buttonEnabled");
       setTimeout(function() { $("#warningBoard").hide();
   	                          $("#turnPar").hide();}, 2000);// show your turn! for 2 seconds
     		
@@ -580,7 +598,9 @@ socket.on('redirect', function(destination) {
   socket.on("showBoard", function(data) {
     $("#msgs").empty();
     $("#start_game_button").hide();
+    $("#start_game_button").removeClass("buttonEnabled").addClass("buttonDisabled");
     $("#logout").hide();
+    $("#checkAnswerDropBtn").removeClass("buttonDisabled").addClass("buttonEnabled");
     var boardTemplate = document.getElementById('gameBoard'),
         gameArea = document.getElementById('game-area'),
         boardClone = boardTemplate.content.cloneNode(true);
@@ -833,10 +853,12 @@ $('body').on('click', '#listOfRooms li', function(){
   
   socket.on("showStartButton", function(data) {
     $("#start_game_button").show();
+    $("#start_game_button").removeClass("buttonDisabled").addClass("buttonEnabled");
   });
   
   socket.on("hideStartButton", function(data) {
     $("#start_game_button").hide();
+    $("#start_game_button").removeClass("buttonEnabled").addClass("buttonDisabled");
   });
       
   socket.on("disableBoard", function(data) {
