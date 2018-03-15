@@ -1,5 +1,5 @@
 # Turn-based game with Chat app written in node.js and socket.io
-
+<p>This game uses chat functionality from https://github.com/tpiros/advanced-chat</p>
 ## Libraries used
 <ul>
   <li>node.js / npm</li>
