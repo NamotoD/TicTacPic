@@ -1,4 +1,4 @@
-# [Turn-based game with Chat app written in node.js and socket.io](https://crabs.herokuapp.com/)
+# [Turn-based game with Chat app written in node.js and socket.io](https://tic-tac-pic.herokuapp.com/)
 <p>This game uses chat functionality from https://github.com/tpiros/advanced-chat</p>
 ## Libraries used
 <ul>
