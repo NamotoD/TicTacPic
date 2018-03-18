@@ -20,7 +20,11 @@
   <li>Tic Tac Pic is a responsive turn based game, that could be played on any device ranging from a mobile phone through to a tablet or a desktop.</li>
   <li>It could be played by 2 players in Small and Medium room sizes, and by 2-4 players when Large room was chosen.</li>
   <li>Players can either create their own room by pressing Create room button, or join another player(s) by clicking on the room size of their choice. Clicking again on the room size will reveal the available rooms(note: Player can see those rooms under the the Lobby tab).</li>
+<<<<<<< HEAD
   <li>The game starts after the owner(first game in a room), or the winner of the previous game(every following game) in the same room pressed the Start button</li>
+=======
+  <li>The game starts after the owner (first game in a room), or the winner of the previous game(every following game) in the same room pressed the Start button</li>
+>>>>>>> 915625e06b50ad49622ae49ec12320d7af3f9383
   <li>User agent and geo location are both detected</li>
   <li>People can setup a room. Room names are unique. One person can create one room and join one room</li>
   <li>Users have to join a room to chat.</li>
