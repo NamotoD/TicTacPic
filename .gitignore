@@ -1,2 +1,7 @@
-node_modules/
+.c9/
+.openshift/
 components/
+config/
+data/
+node_modules/
+
