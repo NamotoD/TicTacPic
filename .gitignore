@@ -1,12 +1,7 @@
-.c9
-.openshift
+.c9/
+.openshift/
 components/
-config/auth.js
-config/database.js
-config/passport.js
-data/local.O
-data/local.ns
-data/mongod.lock
-data/myMongo.O
-data/myMongo.ns
+config/
+data/
 node_modules/
+
